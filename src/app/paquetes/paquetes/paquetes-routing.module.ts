@@ -19,6 +19,7 @@ import { AsignacionesListaComponent } from '../../asignaciones-lista/asignacione
 // NUEVO: Importar calendario de paquetes
 import { CalendarioPaquetesComponent } from '../../calendario-paquetes/calendario-paquetes/calendario-paquetes.component';
 import { CompraPaquetesComponent } from '../../compra-paquetes/compra-paquetes/compra-paquetes.component';
+import { ValidacionComprasComponent } from '../../validacion-compras/validacion-compras/validacion-compras.component';
 
 
 const routes: Routes = [
@@ -60,7 +61,15 @@ const routes: Routes = [
   // ==================================================
   // VALIDACIÓN DE COMPRAS - SOLO ADMIN
   // ==================================================
-
+  { 
+    path: 'validacion-compras', 
+    component: ValidacionComprasComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { 
+      profiles: [1, 3], // Solo Admin (1) y Supervisor (3)
+      title: 'Asignar Paquete'
+    }
+  },
   
   // ==================================================
   // CALENDARIO - TODOS PUEDEN ACCEDER
