@@ -886,7 +886,7 @@ export class CalendarioPaquetesComponent implements OnInit, OnDestroy {
   private formatRutinaContent(rutina: any): string {
     let content = `${rutina.nombre}\n`;
     content += `${rutina.descripcion || ''}\n`;
-    content += `Nivel: ${rutina.nivel} | Duración: ${rutina.duracion_estimada || 0}m 0m\n\n`;
+    content += `Nivel: ${rutina.estimulo} | Duración: ${rutina.duracion_estimada || 0}m 0m\n\n`;
     
     if (rutina.objetivo_principal) {
       content += `Objetivo: ${rutina.objetivo_principal}\n`;

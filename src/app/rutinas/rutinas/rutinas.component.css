@@ -467,3 +467,345 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* ================================ */
+/* ESTILOS PARA NIVEL EDITABLE */
+/* ================================ */
+
+/* Contenedor del input de nivel */
+.nivel-input-container {
+  position: relative;
+}
+
+/* Campo de input de nivel */
+.nivel-input {
+  padding-right: 2.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.nivel-input:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+
+/* Dropdown de sugerencias */
+.nivel-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10050; /* Mayor que otros elementos del modal */
+  margin-top: 0.25rem;
+  background-color: white;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-height: 15rem;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  animation: slideDown 0.15s ease-out;
+}
+
+/* Items de sugerencia */
+.nivel-suggestion-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  display: block;
+}
+
+.nivel-suggestion-item:hover,
+.nivel-suggestion-item:focus {
+  background-color: #f3f4f6;
+  outline: none;
+}
+
+.nivel-suggestion-item:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: -2px;
+}
+
+/* Footer del dropdown */
+.nivel-suggestion-footer {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+/* Animación de entrada del dropdown */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================ */
+/* BADGES DE NIVEL DINÁMICOS */
+/* ================================ */
+
+/* Badge base de nivel mejorado */
+.nivel-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.nivel-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Variantes de colores para niveles específicos */
+.nivel-badge.principiante {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.nivel-badge.intermedio {
+  background-color: #fefce8;
+  color: #a16207;
+  border-color: #fde047;
+}
+
+.nivel-badge.avanzado {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.nivel-badge.elite,
+.nivel-badge.competencia,
+.nivel-badge.profesional {
+  background-color: #f0f9ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.nivel-badge.crossfit {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+}
+
+.nivel-badge.rehabilitacion {
+  background-color: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+/* ================================ */
+/* TOOLTIP PARA NIVELES LARGOS */
+/* ================================ */
+
+.nivel-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.nivel-tooltip:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10060;
+  margin-bottom: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.nivel-tooltip:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+  z-index: 10060;
+}
+
+/* ================================ */
+/* ESTILOS RESPONSIVOS PARA NIVEL */
+/* ================================ */
+
+@media (max-width: 640px) {
+  .nivel-suggestions-dropdown {
+    max-height: 12rem;
+  }
+  
+  .nivel-suggestion-item {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+  
+  .nivel-badge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nivel-input-container {
+    margin-bottom: 1rem;
+  }
+}
+
+/* ================================ */
+/* SCROLLBAR PERSONALIZADO PARA DROPDOWN */
+/* ================================ */
+
+.nivel-suggestions-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ================================ */
+/* MEJORAS DE ACCESIBILIDAD PARA NIVEL */
+/* ================================ */
+
+.nivel-suggestion-item:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: -2px;
+}
+
+.nivel-input:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+/* ================================ */
+/* INDICADOR VISUAL DE CAMPO EDITABLE */
+/* ================================ */
+
+.nivel-input-wrapper {
+  position: relative;
+}
+
+.nivel-input-wrapper::after {
+  content: "✏️";
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.nivel-input-wrapper:hover::after {
+  opacity: 0.8;
+}
+
+/* ================================ */
+/* ESTADOS DE LOADING Y ERROR */
+/* ================================ */
+
+.nivel-input-loading {
+  background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M10 3.5a6.5 6.5 0 106.5 6.5' stroke='%236b7280' stroke-width='2' fill='none'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+.nivel-input-error {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.nivel-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* ================================ */
+/* MEJORAS ADICIONALES */
+/* ================================ */
+
+/* Mejorar la transición del badge de nivel en las tarjetas */
+.nivel-badge-card {
+  transition: all 0.2s ease;
+}
+
+.nivel-badge-card:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.02);
+}
+
+/* Efecto de highlight cuando se selecciona una sugerencia */
+.nivel-suggestion-item.selected {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Mejoras para el filtro de nivel en la parte superior */
+.nivel-filter-input {
+  transition: all 0.15s ease;
+}
+
+.nivel-filter-input:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Animación para cuando se actualiza el nivel */
+.nivel-updated {
+  animation: levelUpdate 0.5s ease-out;
+}
+
+@keyframes levelUpdate {
+  0% {
+    background-color: #fef2f2;
+    transform: scale(1);
+  }
+  50% {
+    background-color: #fee2e2;
+    transform: scale(1.05);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}

@@ -78,19 +78,19 @@
         </select>
       </div>
 
-      <!-- Filtro por Nivel -->
+      <!-- FILTRO POR NIVEL MODIFICADO -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
-        <select
+        <label class="block text-sm font-medium text-gray-700 mb-2">Estimulo</label>
+        <input
+          type="text"
           [(ngModel)]="nivelFilter"
-          (change)="onFilterChange()"
+          (input)="onFilterChange()"
+          placeholder="Filtrar por nivel..."
           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-        >
-          <option value="all">Todos</option>
-          <option value="principiante">Principiante</option>
-          <option value="intermedio">Intermedio</option>
-          <option value="avanzado">Avanzado</option>
-        </select>
+        />
+        <p class="mt-1 text-xs text-gray-500">
+          Deja vacío para mostrar todos
+        </p>
       </div>
     </div>
     
@@ -146,7 +146,9 @@
       <div class="p-6">
         <!-- Información básica -->
         <div class="flex justify-between items-center mb-4">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <!-- BADGE DE NIVEL MODIFICADO -->
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 max-w-[120px] overflow-hidden text-overflow-ellipsis whitespace-nowrap" 
+                [title]="rutina.nivel">
             {{ rutina.nivel }}
           </span>
           <span class="text-sm text-gray-500">{{ formatDuracion(rutina.duracion_estimada) }}</span>
@@ -182,9 +184,9 @@
           </div>
         </div>
 
-        <!-- ACCIONES ACTUALIZADAS CON BOTÓN VER -->
+        <!-- ACCIONES -->
         <div class="flex justify-end space-x-2">
-          <!-- Botón Ver (visible para todos los usuarios autenticados) -->
+          <!-- Botón Ver -->
           <button
             *ngIf="canViewRutina()"
             (click)="openViewModal(rutina)"
@@ -197,7 +199,7 @@
             </svg>
           </button>
           
-          <!-- Botón Editar (solo para admin/supervisor) -->
+          <!-- Botón Editar -->
           <button
             *ngIf="rutina.status === 1 && canEditRutina()"
             (click)="openEditModal(rutina)"
@@ -209,7 +211,7 @@
             </svg>
           </button>
 
-          <!-- Botón Exportar (visible para todos) -->
+          <!-- Botón Exportar -->
           <button
             (click)="exportarRutina(rutina)"
             class="text-green-600 hover:text-green-900 p-2 rounded-full hover:bg-green-50 transition-colors duration-150"
@@ -220,7 +222,7 @@
             </svg>
           </button>
 
-          <!-- Botón Eliminar (solo para admin/supervisor) -->
+          <!-- Botón Eliminar -->
           <button
             *ngIf="rutina.status === 1 && canEditRutina()"
             (click)="deleteRutina(rutina)"
@@ -232,7 +234,7 @@
             </svg>
           </button>
 
-          <!-- Botón Reactivar (solo para admin/supervisor) -->
+          <!-- Botón Reactivar -->
           <button
             *ngIf="rutina.status === 0 && canEditRutina()"
             (click)="reactivateRutina(rutina)"
@@ -276,13 +278,13 @@
   </div>
 </div>
 
-<!-- Modal para Crear/Editar Rutina (CORREGIDO) -->
+<!-- Modal para Crear/Editar Rutina -->
 <div *ngIf="showModal" class="modal-container modal-backdrop">
   <div class="flex items-center justify-start min-h-screen">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeModal()"></div>
 
-    <!-- Modal Panel con nueva clase -->
+    <!-- Modal Panel -->
     <div class="modal-panel modal-enter relative">
       <!-- Modal Header -->
       <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -344,16 +346,41 @@
             </select>
           </div>
 
+          <!-- CAMPO DE NIVEL MODIFICADO CON SUGERENCIAS -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
-            <select
-              [(ngModel)]="rutinaForm.nivel"
-              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 form-input"
-            >
-              <option value="principiante">Principiante</option>
-              <option value="intermedio">Intermedio</option>
-              <option value="avanzado">Avanzado</option>
-            </select>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Estimulo</label>
+            <div class="relative nivel-input-container">
+              <input
+                type="text"
+                [(ngModel)]="rutinaForm.nivel"
+                (focus)="showNivelSuggestions = true"
+                (blur)="hideNivelSuggestions()"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 form-input nivel-input"
+                placeholder="Ej: Principiante, Intermedio, CrossFit Rx, etc."
+                maxlength="50"
+              />
+              
+              <!-- Dropdown con sugerencias -->
+              <div 
+                *ngIf="showNivelSuggestions" 
+                class="nivel-suggestions-dropdown"
+              >
+                <button
+                  *ngFor="let sugerencia of nivelesSugeridos"
+                  type="button"
+                  (mousedown)="selectNivelSugerencia(sugerencia)"
+                  class="nivel-suggestion-item"
+                >
+                  {{ sugerencia }}
+                </button>
+                <div class="nivel-suggestion-footer">
+                  También puedes escribir un nivel personalizado
+                </div>
+              </div>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">
+              Puedes escribir cualquier nivel personalizado
+            </p>
           </div>
 
           <div class="md:col-span-2">
@@ -659,7 +686,7 @@
   </svg>
 </button>
 
-<!-- MODAL PARA VER RUTINA (CORREGIDO) -->
+<!-- MODAL PARA VER RUTINA -->
 <div *ngIf="showViewModal" class="modal-view-container modal-backdrop">
   <div class="flex items-center justify-end min-h-screen">
     <!-- Backdrop -->

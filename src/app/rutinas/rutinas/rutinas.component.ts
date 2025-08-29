@@ -27,17 +27,34 @@ export class RutinasComponent implements OnInit {
   modalMode: 'create' | 'edit' | 'view' = 'create';
   selectedRutina: Rutina | null = null;
 
-  // NUEVA PROPIEDAD: Modal de vista independiente
+  // Modal de vista independiente
   showViewModal = false;
   selectedViewRutina: Rutina | null = null;
   copySuccess = false;
+
+  // NUEVAS PROPIEDADES PARA NIVEL EDITABLE
+  showNivelSuggestions = false;
+  nivelesSugeridos: string[] = [
+    'Principiante',
+    'Intermedio', 
+    'Avanzado',
+    'CrossFit Rx',
+    'CrossFit Scaled',
+    'Elite',
+    'Competencia',
+    'Rehabilitación',
+    'Adulto Mayor',
+    'Juvenil',
+    'Profesional',
+    'Amateur'
+  ];
 
   // Formulario para rutina con index signature
   rutinaForm: Rutina = {
     nombre: '',
     descripcion: '',
     tipo: 'entrenamiento',
-    nivel: 'intermedio',
+    nivel: 'Intermedio', // Valor por defecto actualizado
     duracion_estimada: 60,
     tags: [],
     status: 1
@@ -54,10 +71,10 @@ export class RutinasComponent implements OnInit {
     { key: 'extra', nombre: 'Extra', descripcion: 'Trabajo Adicional' }
   ];
 
-  // Filtros
+  // Filtros - ACTUALIZADO: nivelFilter ahora es string vacío
   searchTerm = '';
   tipoFilter = 'all';
-  nivelFilter = 'all';
+  nivelFilter = ''; // Cambio: de 'all' a string vacío
   statusFilter = 'active';
 
   // Control de secciones activas en el formulario
@@ -89,12 +106,11 @@ export class RutinasComponent implements OnInit {
       const data = await this.supabaseService.getData('rutinas');
       this.rutinas = data || [];
 
-      // NUEVO: Ordenar alfabéticamente las rutinas por nombre
-    this.rutinas = this.rutinas.sort((a, b) => {
-      return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
-    });
+      // Ordenar alfabéticamente las rutinas por nombre
+      this.rutinas = this.rutinas.sort((a, b) => {
+        return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
+      });
 
-    
       this.filteredRutinas = [...this.rutinas];
       this.applyFilters();
       console.log('Rutinas cargadas:', this.rutinas.length);
@@ -106,6 +122,7 @@ export class RutinasComponent implements OnInit {
     }
   }
 
+  // MÉTODO MODIFICADO: applyFilters() con filtro de nivel como texto
   applyFilters(): void {
     let filtered = [...this.rutinas];
 
@@ -131,26 +148,30 @@ export class RutinasComponent implements OnInit {
       filtered = filtered.filter(rutina => rutina.tipo === this.tipoFilter);
     }
 
-    // Filtro por nivel
-    if (this.nivelFilter !== 'all') {
-      filtered = filtered.filter(rutina => rutina.nivel === this.nivelFilter);
+    // FILTRO POR NIVEL MODIFICADO - AHORA ES TEXTO LIBRE
+    if (this.nivelFilter && this.nivelFilter.trim()) {
+      const nivelTerm = this.nivelFilter.toLowerCase().trim();
+      filtered = filtered.filter(rutina => 
+        rutina.nivel?.toLowerCase().includes(nivelTerm)
+      );
     }
 
-    // NUEVO: Ordenamiento alfabético por nombre
-  filtered = filtered.sort((a, b) => {
-    return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
-  });
+    // Ordenamiento alfabético por nombre
+    filtered = filtered.sort((a, b) => {
+      return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
+    });
 
     this.filteredRutinas = filtered;
   }
 
+  // MÉTODO MODIFICADO: openCreateModal() con valor de nivel por defecto actualizado
   openCreateModal(): void {
     this.modalMode = 'create';
     this.rutinaForm = {
       nombre: '',
       descripcion: '',
       tipo: 'entrenamiento',
-      nivel: 'intermedio',
+      nivel: 'Intermedio', // Cambiar el valor por defecto
       duracion_estimada: 60,
       tags: [],
       status: 1
@@ -158,6 +179,7 @@ export class RutinasComponent implements OnInit {
     this.seccionesActivas.clear();
     this.error = '';
     this.showModal = true;
+    this.showNivelSuggestions = false; // Asegurar que se cierre el dropdown
   }
 
   openEditModal(rutina: Rutina): void {
@@ -175,16 +197,16 @@ export class RutinasComponent implements OnInit {
     
     this.error = '';
     this.showModal = true;
+    this.showNivelSuggestions = false; // Asegurar que se cierre el dropdown
   }
 
-  // NUEVO MÉTODO: Modal de vista independiente
+  // Modal de vista independiente
   openViewModal(rutina: Rutina): void {
     console.log('Abriendo modal de vista para rutina:', rutina.nombre);
     this.selectedViewRutina = rutina;
     this.showViewModal = true;
   }
 
-  // NUEVO MÉTODO: Cerrar modal de vista
   closeViewModal(): void {
     console.log('Cerrando modal de vista');
     this.showViewModal = false;
@@ -197,15 +219,51 @@ export class RutinasComponent implements OnInit {
     this.selectedRutina = null;
     this.error = '';
     this.seccionesActivas.clear();
+    this.showNivelSuggestions = false; // Limpiar estado del dropdown
   }
 
+  // NUEVOS MÉTODOS PARA MANEJO DEL DROPDOWN DE SUGERENCIAS
+  selectNivelSugerencia(sugerencia: string): void {
+    this.rutinaForm.nivel = sugerencia;
+    this.showNivelSuggestions = false;
+  }
+
+  hideNivelSuggestions(): void {
+    // Usar setTimeout para permitir que el click en la sugerencia funcione
+    setTimeout(() => {
+      this.showNivelSuggestions = false;
+    }, 200);
+  }
+
+  // MÉTODO PARA VALIDAR EL NIVEL EN EL FORMULARIO
+  private validateNivel(): boolean {
+    if (!this.rutinaForm.nivel || !this.rutinaForm.nivel.trim()) {
+      this.error = 'El nivel es requerido';
+      return false;
+    }
+    
+    // Validar longitud máxima
+    if (this.rutinaForm.nivel.length > 50) {
+      this.error = 'El nivel no puede exceder 50 caracteres';
+      return false;
+    }
+    
+    return true;
+  }
+
+  // MÉTODO MODIFICADO: saveRutina() con validación de nivel
   async saveRutina(): Promise<void> {
     try {
       this.error = '';
 
-      // Validaciones
+      // Validaciones existentes
       if (!this.rutinaForm.nombre.trim()) {
         this.error = 'El nombre es requerido';
+        return;
+      }
+
+      // NUEVA VALIDACIÓN DE NIVEL
+      if (!this.validateNivel()) {
         return;
       }
 
@@ -213,6 +271,9 @@ export class RutinasComponent implements OnInit {
         this.error = 'Debe activar al menos una sección';
         return;
       }
+
+      // Limpiar y normalizar el nivel
+      this.rutinaForm.nivel = this.rutinaForm.nivel.trim();
 
       // Preparar datos para guardar
       const dataToSave = { ...this.rutinaForm };
@@ -419,10 +480,11 @@ export class RutinasComponent implements OnInit {
     this.applyFilters();
   }
 
+  // MÉTODO MODIFICADO: clearFilters() con nivelFilter como string vacío
   clearFilters(): void {
     this.searchTerm = '';
     this.tipoFilter = 'all';
-    this.nivelFilter = 'all';
+    this.nivelFilter = ''; // Cambio: de 'all' a string vacío
     this.statusFilter = 'active';
     this.applyFilters();
   }
@@ -439,7 +501,7 @@ export class RutinasComponent implements OnInit {
     return ejercicio.orden || index;
   }
 
-  // NUEVO MÉTODO: Formatear rutina para el modal de vista
+  // Formatear rutina para el modal de vista
   getFormattedRutina(rutina: Rutina | null): string {
     if (!rutina) return '';
 
@@ -511,7 +573,7 @@ export class RutinasComponent implements OnInit {
     return texto;
   }
 
-  // NUEVO MÉTODO: Copiar al portapapeles
+  // Copiar al portapapeles
   async copyToClipboard(text: string): Promise<void> {
     try {
       await navigator.clipboard.writeText(text);
@@ -529,7 +591,7 @@ export class RutinasComponent implements OnInit {
     }
   }
 
-  // NUEVO MÉTODO: Fallback para copiar texto
+  // Fallback para copiar texto
   private fallbackCopyTextToClipboard(text: string): void {
     const textArea = document.createElement('textarea');
     textArea.value = text;
@@ -557,17 +619,17 @@ export class RutinasComponent implements OnInit {
     document.body.removeChild(textArea);
   }
 
-  // NUEVO MÉTODO: Verificar permisos de visualización
+  // Verificar permisos de visualización
   canViewRutina(): boolean {
     return this.authService.isAuthenticated();
   }
 
-  // NUEVO MÉTODO: Verificar permisos de edición
+  // Verificar permisos de edición
   canEditRutina(): boolean {
     return this.authService.isAdmin() || this.authService.hasProfile(3); // Admin o Supervisor
   }
 
-  // MÉTODO ACTUALIZADO: Exportar rutina como texto
+  // Exportar rutina como texto
   exportarRutina(rutina: Rutina): void {
     const texto = this.getFormattedRutina(rutina);
     
@@ -583,11 +645,61 @@ export class RutinasComponent implements OnInit {
     console.log('Rutina exportada:', rutina.nombre);
   }
 
-  // NUEVO MÉTODO: Obtener nombre de archivo para el modal
+  // Obtener nombre de archivo para el modal
   getFileName(rutina: Rutina | null): string {
     if (!rutina || !rutina.nombre) {
       return 'rutina.txt';
     }
     return rutina.nombre.replace(/\s+/g, '_') + '.txt';
+  }
+
+  // MÉTODOS AUXILIARES ADICIONALES PARA NIVEL EDITABLE
+
+  // Obtener niveles únicos existentes (útil para sugerencias dinámicas)
+  getNivelesExistentes(): string[] {
+    const niveles = new Set<string>();
+    this.rutinas.forEach(rutina => {
+      if (rutina.nivel && rutina.nivel.trim()) {
+        niveles.add(rutina.nivel.trim());
+      }
+    });
+    return Array.from(niveles).sort();
+  }
+
+  // Obtener estadísticas de niveles
+  getEstadisticasNiveles(): { [key: string]: number } {
+    const stats: { [key: string]: number } = {};
+    
+    this.rutinas.forEach(rutina => {
+      if (rutina.nivel && rutina.status === 1) {
+        const nivel = rutina.nivel.trim();
+        stats[nivel] = (stats[nivel] || 0) + 1;
+      }
+    });
+    
+    return stats;
+  }
+
+  // Actualizar sugerencias dinámicamente basadas en rutinas existentes
+  updateNivelesSugeridos(): void {
+    const nivelesExistentes = this.getNivelesExistentes();
+    const sugerenciasBase = [
+      'Principiante',
+      'Intermedio', 
+      'Avanzado',
+      'CrossFit Rx',
+      'CrossFit Scaled',
+      'Elite',
+      'Competencia',
+      'Rehabilitación',
+      'Adulto Mayor',
+      'Juvenil',
+      'Profesional',
+      'Amateur'
+    ];
+
+    // Combinar sugerencias base con niveles existentes únicos
+    const nivelesUnicos = new Set([...sugerenciasBase, ...nivelesExistentes]);
+    this.nivelesSugeridos = Array.from(nivelesUnicos).sort();
   }
 }
