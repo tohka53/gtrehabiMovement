@@ -10,7 +10,7 @@ export interface Terapia {
   descripcion?: string;
   tipo: 'fisica' | 'ocupacional' | 'respiratoria' | 'neurologica' | 'cardiaca';
   area_especializacion?: string;
-  nivel: 'principiante' | 'intermedio' | 'avanzado';
+  nivel: string; // CAMBIO: Ahora permite cualquier string libre
   duracion_estimada?: number; // en minutos
   objetivo_principal?: string;
   contraindicaciones?: string;
@@ -150,7 +150,7 @@ export interface TerapiaAsignadaUsuario {
   terapia_descripcion?: string;
   terapia_tipo: string;
   area_especializacion?: string;
-  terapia_nivel: string;
+  terapia_nivel: string; // CAMBIO: También actualizado aquí para consistencia
   duracion_estimada?: number;
   tipo_asignacion: string;
   sesiones_por_semana: number;
@@ -354,7 +354,24 @@ export enum TipoTerapia {
   CARDIACA = 'cardiaca'
 }
 
-export enum NivelTerapia {
+// CAMBIO: Ahora definimos niveles sugeridos como constantes en lugar de enum estricto
+export const NIVELES_SUGERIDOS = [
+  'Principiante',
+  'Intermedio',
+  'Avanzado',
+  'Post-quirúrgico',
+  'Pre-quirúrgico',
+  'Crónico',
+  'Agudo',
+  'Subagudo',
+  'Rehabilitación temprana',
+  'Rehabilitación avanzada',
+  'Mantenimiento',
+  'Preventivo'
+] as const;
+
+// Para compatibilidad con código existente, mantenemos el enum básico
+export enum NivelTerapiaBasico {
   PRINCIPIANTE = 'principiante',
   INTERMEDIO = 'intermedio',
   AVANZADO = 'avanzado'

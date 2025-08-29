@@ -1,6 +1,6 @@
-/* src/app/rutinas/rutinas/rutinas.component.css */
+/* src/app/terapias/terapias.component.css */
 
-/* Animaciones personalizadas */
+/* Estilos base existentes */
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -25,15 +25,6 @@
   }
 }
 
-/* Transiciones suaves para cards */
-.rutina-card {
-  transition: all 0.3s ease;
-}
-
-.rutina-card:hover {
-  transform: translateY(-4px);
-}
-
 /* Efectos para botones */
 .btn-floating {
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
@@ -45,14 +36,13 @@
   box-shadow: 0 6px 25px rgba(239, 68, 68, 0.6);
 }
 
-/* MODALES CORREGIDOS - Posicionamiento que evita el sidebar */
+/* MODALES - Posicionamiento que evita el sidebar */
 .modal-backdrop {
   backdrop-filter: blur(4px);
   background-color: rgba(0, 0, 0, 0.6);
   z-index: 9998;
 }
 
-/* Modal Principal - Crear/Editar */
 .modal-container {
   position: fixed;
   top: 0;
@@ -64,10 +54,9 @@
   padding: 1rem;
 }
 
-/* Panel del modal con margen lateral para evitar sidebar */
 .modal-panel {
-  margin-left: 280px; /* Espacio para sidebar expandido */
-  max-width: calc(100vw - 320px); /* Ancho máximo considerando sidebar */
+  margin-left: 280px;
+  max-width: calc(100vw - 320px);
   width: 100%;
   background: white;
   border-radius: 0.5rem;
@@ -76,15 +65,6 @@
   transition: all 0.3s ease;
 }
 
-/* Cuando el sidebar está colapsado */
-@media (min-width: 768px) {
-  .sidebar-collapsed .modal-panel {
-    margin-left: 80px; /* Espacio para sidebar colapsado */
-    max-width: calc(100vw - 120px);
-  }
-}
-
-/* Modal de Vista - Más pequeño y centrado a la derecha */
 .modal-view-container {
   position: fixed;
   top: 0;
@@ -101,7 +81,7 @@
 }
 
 .modal-view-panel {
-  margin-left: 300px; /* Más margen para modal de vista */
+  margin-left: 300px;
   max-width: 900px;
   width: 100%;
   background: white;
@@ -113,7 +93,7 @@
   transition: all 0.3s ease;
 }
 
-/* Responsive - Móviles */
+/* Responsive */
 @media (max-width: 767px) {
   .modal-panel,
   .modal-view-panel {
@@ -133,7 +113,6 @@
   }
 }
 
-/* Tablet */
 @media (max-width: 1024px) and (min-width: 768px) {
   .modal-panel {
     margin-left: 240px;
@@ -144,29 +123,6 @@
     margin-left: 260px;
     max-width: calc(100vw - 300px);
   }
-}
-
-/* Scroll personalizado para modal */
-.modal-content::-webkit-scrollbar,
-.modal-view-panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-content::-webkit-scrollbar-track,
-.modal-view-panel::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb,
-.modal-view-panel::-webkit-scrollbar-thumb {
-  background: #dc2626;
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover,
-.modal-view-panel::-webkit-scrollbar-thumb:hover {
-  background: #b91c1c;
 }
 
 /* Efectos para tags */
@@ -206,19 +162,6 @@
   border-color: #dc2626;
 }
 
-/* Grid responsive mejorado */
-.rutinas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .rutinas-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Efectos para checkboxes */
 .checkbox-seccion {
   transform: scale(1.2);
@@ -243,36 +186,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Gradientes personalizados */
-.gradient-red {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-}
-
-.gradient-gray {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-}
-
-/* Badge styles */
-.badge-status {
-  position: relative;
-  overflow: hidden;
-}
-
-.badge-status::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.badge-status:hover::before {
-  left: 100%;
 }
 
 /* Efectos para botones de acción */
@@ -300,59 +213,9 @@
   height: 300px;
 }
 
-/* Tooltip personalizado */
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #374151;
-  color: white;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -60px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 12px;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
-}
-
 /* Z-index hierarchy para evitar conflictos */
 .floating-action-btn {
-  z-index: 9997; /* Menor que modales pero mayor que contenido */
-}
-
-/* Estados del sidebar para ajustes dinámicos */
-.main-content.sidebar-expanded .modal-panel {
-  margin-left: 280px;
-  max-width: calc(100vw - 320px);
-}
-
-.main-content.sidebar-collapsed .modal-panel {
-  margin-left: 80px;
-  max-width: calc(100vw - 120px);
-}
-
-.main-content.sidebar-expanded .modal-view-panel {
-  margin-left: 300px;
-  max-width: calc(100vw - 340px);
-}
-
-.main-content.sidebar-collapsed .modal-view-panel {
-  margin-left: 100px;
-  max-width: calc(100vw - 140px);
+  z-index: 9997;
 }
 
 /* Animaciones de entrada para modales */
@@ -386,61 +249,6 @@
   }
 }
 
-/* Responsive improvements */
-@media (max-width: 768px) {
-  .modal-content {
-    max-height: 90vh;
-  }
-  
-  .grid-responsive {
-    grid-template-columns: 1fr;
-  }
-  
-  .text-responsive {
-    font-size: 0.875rem;
-  }
-}
-
-/* Dark mode support (si decides implementarlo) */
-@media (prefers-color-scheme: dark) {
-  .card-dark {
-    background-color: #1f2937;
-    border-color: #374151;
-  }
-  
-  .text-dark {
-    color: #f9fafb;
-  }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  
-  .print-only {
-    display: block !important;
-  }
-}
-
-/* Accessibility improvements */
-.focus-visible:focus {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .btn-primary {
-    border: 2px solid #000;
-  }
-  
-  .card {
-    border: 2px solid #000;
-  }
-}
-
 /* Mejoras específicas para el contenido del modal */
 .modal-body {
   max-height: 70vh;
@@ -466,4 +274,360 @@
   background-color: #f3f4f6;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ================================ */
+/* ESTILOS PARA NIVEL EDITABLE EN TERAPIAS */
+/* ================================ */
+
+/* Contenedor del input de nivel */
+.nivel-input-container {
+  position: relative;
+}
+
+/* Campo de input de nivel */
+.nivel-input {
+  padding-right: 2.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.nivel-input:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+
+/* Dropdown de sugerencias específico para terapias */
+.nivel-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10050; /* Mayor que otros elementos del modal */
+  margin-top: 0.25rem;
+  background-color: white;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-height: 15rem;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  animation: slideDown 0.15s ease-out;
+}
+
+/* Items de sugerencia */
+.nivel-suggestion-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  display: block;
+}
+
+.nivel-suggestion-item:hover,
+.nivel-suggestion-item:focus {
+  background-color: #f3f4f6;
+  outline: none;
+}
+
+.nivel-suggestion-item:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: -2px;
+}
+
+/* Footer del dropdown */
+.nivel-suggestion-footer {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+/* Animación de entrada del dropdown */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================ */
+/* BADGES DE NIVEL DINÁMICOS PARA TERAPIAS */
+/* ================================ */
+
+/* Badge base de nivel mejorado para terapias */
+.nivel-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.nivel-tooltip:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10060;
+  margin-bottom: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.nivel-tooltip:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+  z-index: 10060;
+}
+
+/* ================================ */
+/* VARIANTES DE COLORES ESPECÍFICAS PARA TERAPIAS */
+/* ================================ */
+
+/* Colores específicos para tipos de terapia */
+.terapia-badge.fisica {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.terapia-badge.ocupacional {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.terapia-badge.respiratoria {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+}
+
+.terapia-badge.neurologica {
+  background-color: #fef3c7;
+  color: #a16207;
+  border-color: #fde68a;
+}
+
+.terapia-badge.cardiaca {
+  background-color: #fecaca;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+/* Colores específicos para niveles de terapia */
+.nivel-badge.principiante {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.nivel-badge.intermedio {
+  background-color: #fefce8;
+  color: #a16207;
+  border-color: #fde047;
+}
+
+.nivel-badge.avanzado {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.nivel-badge.post-quirurgico,
+.nivel-badge.pre-quirurgico {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.nivel-badge.cronico {
+  background-color: #fdf4ff;
+  color: #a21caf;
+  border-color: #e9d5ff;
+}
+
+.nivel-badge.agudo {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+/* ================================ */
+/* ESTILOS RESPONSIVOS PARA NIVEL EN TERAPIAS */
+/* ================================ */
+
+@media (max-width: 640px) {
+  .nivel-suggestions-dropdown {
+    max-height: 12rem;
+  }
+  
+  .nivel-suggestion-item {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+  
+  .nivel-tooltip {
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nivel-input-container {
+    margin-bottom: 1rem;
+  }
+}
+
+/* ================================ */
+/* SCROLLBAR PERSONALIZADO PARA DROPDOWN DE TERAPIAS */
+/* ================================ */
+
+.nivel-suggestions-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.nivel-suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ================================ */
+/* ESTADOS DE VALIDACIÓN PARA TERAPIAS */
+/* ================================ */
+
+.nivel-input-error {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.nivel-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.nivel-input-success {
+  border-color: #059669;
+  background-color: #f0fdfa;
+}
+
+.nivel-input-success:focus {
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* ================================ */
+/* MEJORAS ESPECÍFICAS PARA FORMULARIOS DE TERAPIA */
+/* ================================ */
+
+/* Mejoras para el filtro de nivel en terapias */
+.nivel-filter-input {
+  transition: all 0.15s ease;
+}
+
+.nivel-filter-input:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Animación cuando se actualiza el nivel */
+.nivel-updated {
+  animation: levelUpdateTerapia 0.5s ease-out;
+}
+
+@keyframes levelUpdateTerapia {
+  0% {
+    background-color: #fef2f2;
+    transform: scale(1);
+  }
+  50% {
+    background-color: #fee2e2;
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+/* ================================ */
+/* MEJORAS DE ACCESIBILIDAD ESPECÍFICAS */
+/* ================================ */
+
+.nivel-input:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+/* Indicador de campo obligatorio */
+.nivel-input.required {
+  border-left: 3px solid #dc2626;
+}
+
+/* Modo de alto contraste */
+@media (prefers-contrast: high) {
+  .nivel-suggestions-dropdown {
+    border: 2px solid #000;
+  }
+  
+  .nivel-suggestion-item:hover {
+    background-color: #000;
+    color: #fff;
+  }
+}
+
+/* ================================ */
+/* ESTILOS ESPECÍFICOS PARA BADGES EN LA LISTA */
+/* ================================ */
+
+.terapia-list-badge {
+  transition: all 0.2s ease;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terapia-list-badge:hover {
+  transform: scale(1.05);
+  max-width: none;
+  white-space: normal;
+}
+
+/* Efecto de highlight cuando se filtra por nivel */
+.nivel-highlight {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  animation: highlightPulse 1s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }

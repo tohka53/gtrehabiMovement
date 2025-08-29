@@ -1,4 +1,4 @@
-// src/app/terapias/terapias.component.ts
+// src/app/terapias/terapias/terapias.component.ts
 import { Component, OnInit } from '@angular/core';
 import { TerapiasService } from '../../services/terapias.service';
 import { AuthService } from '../../services/auth.service';
@@ -7,7 +7,8 @@ import {
   TipoEjercicioTerapeutico,
   SeccionInfo,
   EjercicioTerapeutico,
-  SeccionTerapia
+  SeccionTerapia,
+  NIVELES_SUGERIDOS
 } from '../../interfaces/terapias.interfaces';
 
 @Component({
@@ -29,16 +30,20 @@ export class TerapiasComponent implements OnInit {
   selectedViewTerapia: Terapia | null = null;
   copySuccess = false;
 
+  // PROPIEDADES PARA NIVEL EDITABLE CON SUGERENCIAS
+  showNivelSuggestions = false;
+  nivelesSugeridos: string[] = [...NIVELES_SUGERIDOS]; // Usar constantes de la interface
+
   // Hacer Array disponible en el template
   Array = Array;
 
-  // Formulario para terapia
+  // Formulario para terapia - NIVEL COMO STRING LIBRE
   terapiaForm: Terapia = {
     nombre: '',
     descripcion: '',
     tipo: 'fisica',
     area_especializacion: '',
-    nivel: 'principiante',
+    nivel: 'Principiante', // Ahora es string libre
     duracion_estimada: 60,
     objetivo_principal: '',
     contraindicaciones: '',
@@ -58,11 +63,11 @@ export class TerapiasComponent implements OnInit {
     { key: 'respiracion', nombre: 'Respiración', descripcion: 'Ejercicios respiratorios y relajación' }
   ];
 
-  // Filtros
+  // Filtros - nivelFilter como string libre
   searchTerm = '';
   tipoFilter = 'all';
   areaFilter = 'all';
-  nivelFilter = 'all';
+  nivelFilter = ''; // String libre para filtro
   statusFilter = 'active';
 
   // Control de secciones activas en el formulario
@@ -75,12 +80,6 @@ export class TerapiasComponent implements OnInit {
     { value: 'respiratoria', label: 'Respiratoria' },
     { value: 'neurologica', label: 'Neurológica' },
     { value: 'cardiaca', label: 'Cardíaca' }
-  ];
-
-  nivelesDisponibles = [
-    { value: 'principiante', label: 'Principiante' },
-    { value: 'intermedio', label: 'Intermedio' },
-    { value: 'avanzado', label: 'Avanzado' }
   ];
 
   areasEspecializacion = [
@@ -105,6 +104,7 @@ export class TerapiasComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.loadTiposEjercicios();
     await this.loadTerapias();
+    this.updateNivelesSugeridos(); // Actualizar sugerencias con niveles existentes
   }
 
   async loadTiposEjercicios(): Promise<void> {
@@ -120,6 +120,7 @@ export class TerapiasComponent implements OnInit {
     try {
       this.loading = true;
       this.terapias = await this.terapiasService.getTerapias();
+      this.updateNivelesSugeridos(); // Actualizar después de cargar terapias
       this.applyFilters();
     } catch (error) {
       console.error('Error cargando terapias:', error);
@@ -130,6 +131,7 @@ export class TerapiasComponent implements OnInit {
     }
   }
 
+  // FILTROS ACTUALIZADO PARA NIVEL LIBRE
   applyFilters(): void {
     this.filteredTerapias = this.terapias.filter(terapia => {
       const matchesSearch = !this.searchTerm || 
@@ -139,7 +141,11 @@ export class TerapiasComponent implements OnInit {
 
       const matchesTipo = this.tipoFilter === 'all' || terapia.tipo === this.tipoFilter;
       const matchesArea = this.areaFilter === 'all' || terapia.area_especializacion === this.areaFilter;
-      const matchesNivel = this.nivelFilter === 'all' || terapia.nivel === this.nivelFilter;
+      
+      // FILTRO POR NIVEL COMO TEXTO LIBRE (coincidencia parcial)
+      const matchesNivel = !this.nivelFilter || !this.nivelFilter.trim() ||
+        terapia.nivel?.toLowerCase().includes(this.nivelFilter.toLowerCase().trim());
+      
       const matchesStatus = this.statusFilter === 'all' || 
         (this.statusFilter === 'active' && terapia.status === 1) ||
         (this.statusFilter === 'inactive' && terapia.status === 0);
@@ -152,40 +158,107 @@ export class TerapiasComponent implements OnInit {
     this.searchTerm = '';
     this.tipoFilter = 'all';
     this.areaFilter = 'all';
-    this.nivelFilter = 'all';
+    this.nivelFilter = '';
     this.statusFilter = 'active';
     this.applyFilters();
+  }
+
+  // ===============================================
+  // MÉTODOS PARA MANEJO DEL DROPDOWN DE SUGERENCIAS DE NIVEL
+  // ===============================================
+
+  selectNivelSugerencia(sugerencia: string): void {
+    this.terapiaForm.nivel = sugerencia;
+    this.showNivelSuggestions = false;
+  }
+
+  hideNivelSuggestions(): void {
+    // Usar setTimeout para permitir que el click en la sugerencia funcione
+    setTimeout(() => {
+      this.showNivelSuggestions = false;
+    }, 200);
+  }
+
+  onNivelInputFocus(): void {
+    this.showNivelSuggestions = true;
+  }
+
+  onNivelInputChange(): void {
+    // Filtrar sugerencias basadas en el texto actual
+    const inputValue = this.terapiaForm.nivel?.toLowerCase() || '';
+    if (inputValue) {
+      const filteredSuggestions = this.nivelesSugeridos.filter(nivel =>
+        nivel.toLowerCase().includes(inputValue)
+      );
+      // Solo mostrar sugerencias si hay coincidencias y no es exacta
+      this.showNivelSuggestions = filteredSuggestions.length > 0 && 
+        !filteredSuggestions.some(s => s.toLowerCase() === inputValue);
+    } else {
+      this.showNivelSuggestions = true;
+    }
+  }
+
+  // VALIDACIÓN DEL NIVEL EN EL FORMULARIO
+  private validateNivel(): boolean {
+    if (!this.terapiaForm.nivel || !this.terapiaForm.nivel.trim()) {
+      this.error = 'El nivel es requerido';
+      return false;
+    }
+    
+    // Validar longitud máxima
+    if (this.terapiaForm.nivel.length > 50) {
+      this.error = 'El nivel no puede exceder 50 caracteres';
+      return false;
+    }
+    
+    return true;
+  }
+
+  // OBTENER NIVELES ÚNICOS EXISTENTES
+  getNivelesExistentes(): string[] {
+    const niveles = new Set<string>();
+    this.terapias.forEach(terapia => {
+      if (terapia.nivel && terapia.nivel.trim()) {
+        niveles.add(terapia.nivel.trim());
+      }
+    });
+    return Array.from(niveles).sort();
+  }
+
+  // ACTUALIZAR SUGERENCIAS DINÁMICAMENTE
+  updateNivelesSugeridos(): void {
+    const nivelesExistentes = this.getNivelesExistentes();
+    const sugerenciasBase = [...NIVELES_SUGERIDOS];
+
+    // Combinar sugerencias base con niveles existentes únicos
+    const nivelesUnicos = new Set([...sugerenciasBase, ...nivelesExistentes]);
+    this.nivelesSugeridos = Array.from(nivelesUnicos).sort();
   }
 
   // ===============================================
   // MÉTODOS AUXILIARES PARA EL TEMPLATE
   // ===============================================
 
-  // Método para obtener el label del tipo de terapia (soluciona el error del template)
   getTipoLabel(tipo: string): string {
     const tipoObj = this.tiposDisponibles.find(t => t.value === tipo);
     return tipoObj ? tipoObj.label : tipo;
   }
 
-  // Método para obtener el nombre de una sección por su key
   getSeccionNombre(seccionKey: string): string {
     const seccion = this.seccionesDisponibles.find(s => s.key === seccionKey);
     return seccion ? seccion.nombre : seccionKey;
   }
 
-  // Método para obtener el nombre de un tipo de ejercicio
   getTipoEjercicioNombre(tipoNombre: string): string {
     const tipo = this.tiposEjercicios.find(t => t.nombre === tipoNombre);
     return tipo ? tipo.nombre : tipoNombre;
   }
 
-  // Método para obtener el label de una intensidad
   getIntensidadLabel(intensidad: string): string {
     const intensidadObj = this.intensidadesDisponibles.find(i => i.value === intensidad);
     return intensidadObj ? intensidadObj.label : intensidad;
   }
 
-  // Método para exportar terapia (faltaba este método)
   exportarTerapia(terapia: Terapia): void {
     const texto = this.getFormattedTerapia(terapia);
     
@@ -210,6 +283,7 @@ export class TerapiasComponent implements OnInit {
     this.selectedTerapia = null;
     this.resetForm();
     this.showModal = true;
+    this.showNivelSuggestions = false;
   }
 
   openEditModal(terapia: Terapia): void {
@@ -229,6 +303,7 @@ export class TerapiasComponent implements OnInit {
     
     this.error = '';
     this.showModal = true;
+    this.showNivelSuggestions = false;
   }
 
   openViewModal(terapia: Terapia): void {
@@ -242,6 +317,7 @@ export class TerapiasComponent implements OnInit {
     this.selectedTerapia = null;
     this.error = '';
     this.resetForm();
+    this.showNivelSuggestions = false;
   }
 
   closeViewModal(): void {
@@ -257,7 +333,7 @@ export class TerapiasComponent implements OnInit {
       descripcion: '',
       tipo: 'fisica',
       area_especializacion: '',
-      nivel: 'principiante',
+      nivel: 'Principiante', // Valor por defecto
       duracion_estimada: 60,
       objetivo_principal: '',
       contraindicaciones: '',
@@ -378,7 +454,7 @@ export class TerapiasComponent implements OnInit {
   }
 
   // ===============================================
-  // GUARDADO Y VALIDACIÓN
+  // GUARDADO Y VALIDACIÓN CON VALIDACIÓN DE NIVEL
   // ===============================================
 
   async saveTerapia(): Promise<void> {
@@ -386,9 +462,14 @@ export class TerapiasComponent implements OnInit {
       this.error = '';
       this.loading = true;
 
-      // Validaciones
+      // Validaciones existentes
       if (!this.terapiaForm.nombre.trim()) {
         this.error = 'El nombre es requerido';
+        return;
+      }
+
+      // VALIDACIÓN DE NIVEL
+      if (!this.validateNivel()) {
         return;
       }
 
@@ -411,6 +492,9 @@ export class TerapiasComponent implements OnInit {
         this.error = 'Debe agregar al menos un ejercicio en alguna sección';
         return;
       }
+
+      // Limpiar y normalizar el nivel
+      this.terapiaForm.nivel = this.terapiaForm.nivel.trim();
 
       // Preparar datos para guardar
       const dataToSave = { ...this.terapiaForm };
@@ -485,7 +569,7 @@ export class TerapiasComponent implements OnInit {
     return Array.from(areas).sort();
   }
 
-  // Método para obtener nombre de archivo seguro (sin regex en template)
+  // Método para obtener nombre de archivo seguro
   getFileNameSafe(nombre: string): string {
     return nombre ? nombre.replace(/\s+/g, '_') : 'terapia';
   }

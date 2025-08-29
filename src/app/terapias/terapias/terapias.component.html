@@ -84,20 +84,20 @@
         </select>
       </div>
 
-      <!-- Filtro por Nivel -->
+      <!-- FILTRO POR NIVEL MODIFICADO - AHORA ES INPUT DE TEXTO -->
       <div>
-        <label for="nivel-filter" class="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
-        <select
+        <label for="nivel-filter" class="block text-sm font-medium text-gray-700 mb-1">Estimulo</label>
+        <input
+          type="text"
           id="nivel-filter"
           [(ngModel)]="nivelFilter"
-          (change)="applyFilters()"
+          (input)="applyFilters()"
+          placeholder="Filtrar por estimulo..."
           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
-        >
-          <option value="all">Todos los niveles</option>
-          <option *ngFor="let nivel of nivelesDisponibles" [value]="nivel.value">
-            {{ nivel.label }}
-          </option>
-        </select>
+        />
+        <p class="mt-1 text-xs text-gray-500">
+          Deja vacío para mostrar todos
+        </p>
       </div>
     </div>
 
@@ -149,7 +149,12 @@
                     <span *ngIf="terapia.area_especializacion" class="tag">
                       {{ terapia.area_especializacion | titlecase }}
                     </span>
-                    <span class="capitalize tag">{{ terapia.nivel }}</span>
+                    <!-- NIVEL BADGE MODIFICADO CON TOOLTIP -->
+                    <span 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 max-w-[120px] overflow-hidden text-overflow-ellipsis whitespace-nowrap nivel-tooltip tag" 
+                      [title]="terapia.nivel">
+                      {{ terapia.nivel }}
+                    </span>
                     <span class="tag">{{ formatDuracion(terapia.duracion_estimada) }}</span>
                     <span *ngIf="hasEjercicios(terapia)" class="tag">
                       {{ getTotalEjercicios(terapia) }} ejercicios
@@ -302,6 +307,7 @@
                   [(ngModel)]="terapiaForm.descripcion"
                   name="descripcion"
                   rows="3"
+                  cols="50"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
                   placeholder="Descripción detallada de la terapia..."
                 ></textarea>
@@ -343,22 +349,46 @@
                 </select>
               </div>
 
-              <!-- Nivel -->
+              <!-- NIVEL MODIFICADO CON SUGERENCIAS -->
               <div>
                 <label for="nivel" class="block text-sm font-medium text-gray-700">
-                  Nivel *
+                  Estimulo *
                 </label>
-                <select
-                  id="nivel"
-                  [(ngModel)]="terapiaForm.nivel"
-                  name="nivel"
-                  required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
-                >
-                  <option *ngFor="let nivel of nivelesDisponibles" [value]="nivel.value">
-                    {{ nivel.label }}
-                  </option>
-                </select>
+                <div class="relative nivel-input-container">
+                  <input
+                    type="text"
+                    id="nivel"
+                    [(ngModel)]="terapiaForm.nivel"
+                    name="nivel"
+                    required
+                    (focus)="showNivelSuggestions = true"
+                    (blur)="hideNivelSuggestions()"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input nivel-input"
+                    placeholder="Ej: Principiante, Intermedio, Post-quirúrgico, etc."
+                    maxlength="50"
+                  />
+                  
+                  <!-- Dropdown con sugerencias -->
+                  <div 
+                    *ngIf="showNivelSuggestions" 
+                    class="nivel-suggestions-dropdown"
+                  >
+                    <button
+                      *ngFor="let sugerencia of nivelesSugeridos"
+                      type="button"
+                      (mousedown)="selectNivelSugerencia(sugerencia)"
+                      class="nivel-suggestion-item"
+                    >
+                      {{ sugerencia }}
+                    </button>
+                    <div class="nivel-suggestion-footer">
+                      También puedes escribir un nivel personalizado
+                    </div>
+                  </div>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                  Puedes escribir cualquier nivel personalizado
+                </p>
               </div>
 
               <!-- Duración Estimada -->
