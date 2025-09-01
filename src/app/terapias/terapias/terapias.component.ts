@@ -417,7 +417,9 @@ export class TerapiasComponent implements OnInit {
       duracion: '2:00',
       descripcion: '',
       intensidad: 'moderada',
-      precauciones: ''
+      precauciones: '',
+          cals: 0 // ← NUEVA PROPIEDAD INICIALIZADA
+
     };
 
     seccion.ejercicios.push(nuevoEjercicio);
@@ -609,69 +611,200 @@ export class TerapiasComponent implements OnInit {
     }
   }
 
-  getFormattedTerapia(terapia: Terapia): string {
-    if (!terapia) return '';
+ // ENCUENTRA y ACTUALIZA el método getFormattedTerapia en terapias.component.ts
+// Específicamente la parte que muestra los detalles del ejercicio:
 
-    let texto = `${terapia.nombre}\n`;
-    texto += `${terapia.descripcion || 'Terapia de rehabilitación'}\n`;
-    texto += `Nivel: ${terapia.nivel || 'No especificado'} | Duración: ${this.formatDuracion(terapia.duracion_estimada)}\n\n`;
+// REEMPLAZA COMPLETAMENTE el método getFormattedTerapia en terapias.component.ts para que coincida con el formato terminal:
 
-    // Agregar objetivos y área
-    if (terapia.objetivo_principal) {
-      texto += `Objetivo: ${terapia.objetivo_principal}\n`;
-    }
-    if (terapia.area_especializacion) {
-      texto += `Área: ${terapia.area_especializacion}\n`;
-    }
-    texto += '\n';
+getFormattedTerapia(terapia: Terapia): string {
+  console.log('🩺 Formateando terapia con FORMATO TERMINAL:', terapia?.nombre);
+  
+  if (!terapia) return '';
 
-    // Procesar ejercicios por secciones
-    if (this.hasEjercicios(terapia)) {
-      const seccionesConEjercicios = this.getSeccionesConEjercicios(terapia);
-      
-      seccionesConEjercicios.forEach(sectionKey => {
-        const seccionData = terapia.ejercicios[sectionKey];
-        if (seccionData && seccionData.ejercicios && seccionData.ejercicios.length > 0) {
-          const nombreSeccion = this.getNombreSeccion(sectionKey);
-          texto += `${nombreSeccion.toUpperCase()}\n`;
+  let texto = '';
+  
+  // =====================================
+  // HEADER PRINCIPAL CON DISEÑO MEJORADO
+  // =====================================
+  texto += '╔' + '═'.repeat(78) + '╗\n';
+  texto += '║' + `🩺 ${terapia.nombre.toUpperCase()}`.padEnd(78) + '║\n';
+  texto += '╚' + '═'.repeat(78) + '╝\n';
+  
+  texto += `${terapia.descripcion || 'Terapia de rehabilitación integral'}\n\n`;
+  
+  // Información básica con iconos
+  const nivelText = `Nivel: ${(terapia.nivel || 'No especificado').toUpperCase()}`;
+  const duracionText = `Duración: ${this.formatDuracion(terapia.duracion_estimada)}`;
+  const tipoText = `Tipo: ${this.getTipoLabel(terapia.tipo).toUpperCase()}`;
+  
+  texto += `🎯 ${nivelText} | ⏱️ ${duracionText} | 🏥 ${tipoText}\n\n`;
+  
+  // Información adicional
+  if (terapia.area_especializacion) {
+    texto += `📍 Área: ${terapia.area_especializacion.replace('_', ' ').toUpperCase()}\n`;
+  }
+  if (terapia.objetivo_principal) {
+    texto += `🎯 Objetivo: ${terapia.objetivo_principal}\n`;
+  }
+  texto += '\n';
+  
+  // =====================================
+  // PLAN TERAPÉUTICO CON FORMATO MEJORADO
+  // =====================================
+  texto += '╔' + '═'.repeat(78) + '╗\n';
+  texto += '║' + `💪 PLAN TERAPÉUTICO`.padEnd(78) + '║\n';
+  texto += '╚' + '═'.repeat(78) + '╝\n\n';
+
+  // Iconos para cada sección
+  const iconosSecciones: { [key: string]: string } = {
+    'calentamiento': '🔥',
+    'fortalecimiento': '💪',
+    'equilibrio': '⚖️',
+    'coordinacion': '🎯',
+    'estiramiento': '🤸',
+    'respiracion': '🫁'
+  };
+
+  let seccionesEncontradas = 0;
+  
+  if (this.hasEjercicios(terapia)) {
+    const seccionesConEjercicios = this.getSeccionesConEjercicios(terapia);
+    
+    seccionesConEjercicios.forEach((sectionKey, index) => {
+      const seccionData = terapia.ejercicios[sectionKey];
+      if (seccionData && seccionData.ejercicios && seccionData.ejercicios.length > 0) {
+        seccionesEncontradas++;
+        
+        // Header de sección con icono
+        const icono = iconosSecciones[sectionKey] || '📋';
+        const nombreSeccion = this.getNombreSeccion(sectionKey);
+        texto += '┌' + '─'.repeat(76) + '┐\n';
+        texto += '│ ' + `${icono} ${nombreSeccion.toUpperCase()}`.padEnd(75) + '│\n';
+        texto += '└' + '─'.repeat(76) + '┘\n';
+        
+        // Descripción de la sección si existe
+        if (seccionData.descripcion) {
+          texto += `📝 ${seccionData.descripcion}\n`;
+        }
+        
+        // Información adicional de la sección
+        const infoAdicional = [];
+        if (seccionData.tiempo_total) infoAdicional.push(`⏱️ Tiempo: ${seccionData.tiempo_total}`);
+        
+        if (infoAdicional.length > 0) {
+          texto += `${infoAdicional.join(' | ')}\n`;
+        }
+        
+        texto += '─'.repeat(78) + '\n';
+        
+        // EJERCICIOS CON NUMERACIÓN Y FORMATO MEJORADO
+        seccionData.ejercicios.forEach((ejercicio: any, ejercicioIndex: number) => {
+          texto += `${(ejercicioIndex + 1).toString().padStart(2, '0')}. 🔹 ${ejercicio.nombre || 'Ejercicio'}\n`;
           
-          if (seccionData.descripcion) {
-            texto += `${seccionData.descripcion}\n`;
+          // Detalles del ejercicio con iconos
+          const detalles = [];
+          if (ejercicio.repeticiones) detalles.push(`🔢 ${ejercicio.repeticiones} reps`);
+          if (ejercicio.series) detalles.push(`🔄 ${ejercicio.series} series`);
+          if (ejercicio.duracion) detalles.push(`⏳ ${ejercicio.duracion}`);
+          if (ejercicio.cals) detalles.push(`🔥 ${ejercicio.cals} cals`);
+          if (ejercicio.intensidad) detalles.push(`⚡ ${ejercicio.intensidad}`);
+          
+          if (detalles.length > 0) {
+            texto += `    └─ ${detalles.join(' • ')}\n`;
           }
           
-          seccionData.ejercicios.forEach((ejercicio: any, index: number) => {
-            texto += `${index + 1}. ${ejercicio?.nombre || 'Ejercicio sin nombre'}\n`;
-            if (ejercicio?.descripcion) {
-              texto += `   ${ejercicio.descripcion}\n`;
-            }
-            if (ejercicio?.repeticiones && ejercicio?.series) {
-              texto += `   ${ejercicio.series} series x ${ejercicio.repeticiones} repeticiones\n`;
-            }
-            if (ejercicio?.duracion) {
-              texto += `   Duración: ${ejercicio.duracion}\n`;
-            }
-            if (ejercicio?.precauciones) {
-              texto += `   ⚠️ ${ejercicio.precauciones}\n`;
-            }
+          // Descripción si existe
+          if (ejercicio.descripcion) {
+            texto += `    📝 ${ejercicio.descripcion}\n`;
+          }
+          
+          // Precauciones si existen
+          if (ejercicio.precauciones) {
+            texto += `    ⚠️ PRECAUCIÓN: ${ejercicio.precauciones}\n`;
+          }
+          
+          // Espaciado entre ejercicios
+          if (ejercicioIndex < seccionData.ejercicios.length - 1) {
             texto += '\n';
-          });
+          }
+        });
+        
+        // Separador entre secciones
+        if (index < seccionesConEjercicios.length - 1) {
+          texto += '\n' + '═'.repeat(78) + '\n\n';
         }
-      });
-    } else {
-      texto += 'No se han definido ejercicios para esta terapia\n\n';
-    }
+      }
+    });
+  }
 
-    // Agregar contraindicaciones y criterios de progresión
+  // Si no se encontraron secciones con ejercicios
+  if (seccionesEncontradas === 0) {
+    texto += `┌${'─'.repeat(76)}┐\n`;
+    texto += `│ ℹ️ TERAPIA EN DESARROLLO${' '.repeat(50)}│\n`;
+    texto += `└${'─'.repeat(76)}┘\n`;
+    texto += `Esta terapia está siendo desarrollada.\n`;
+    texto += `Los ejercicios serán agregados próximamente.\n\n`;
+  }
+
+  // =====================================
+  // INFORMACIÓN CLÍNICA ADICIONAL
+  // =====================================
+  if (terapia.contraindicaciones || terapia.criterios_progresion) {
+    texto += '╔' + '═'.repeat(78) + '╗\n';
+    texto += '║' + `⚕️ INFORMACIÓN CLÍNICA`.padEnd(78) + '║\n';
+    texto += '╚' + '═'.repeat(78) + '╝\n\n';
+    
     if (terapia.contraindicaciones) {
-      texto += `CONTRAINDICACIONES\n${terapia.contraindicaciones}\n\n`;
+      texto += '┌' + '─'.repeat(76) + '┐\n';
+      texto += '│ ' + `⚠️ CONTRAINDICACIONES`.padEnd(75) + '│\n';
+      texto += '└' + '─'.repeat(76) + '┘\n';
+      texto += `${terapia.contraindicaciones}\n\n`;
     }
     
     if (terapia.criterios_progresion) {
-      texto += `CRITERIOS DE PROGRESIÓN\n${terapia.criterios_progresion}\n`;
+      texto += '┌' + '─'.repeat(76) + '┐\n';
+      texto += '│ ' + `📈 CRITERIOS DE PROGRESIÓN`.padEnd(75) + '│\n';
+      texto += '└' + '─'.repeat(76) + '┘\n';
+      texto += `${terapia.criterios_progresion}\n\n`;
     }
-
-    return texto;
   }
+
+  // =====================================
+  // TAGS DE LA TERAPIA
+  // =====================================
+  if (terapia.tags && terapia.tags.length > 0) {
+    texto += `🏷️ Tags: ${terapia.tags.map((tag: string) => `#${tag}`).join(' ')}\n\n`;
+  }
+
+  // =====================================
+  // FOOTER CON RESUMEN E INFORMACIÓN DEL SISTEMA
+  // =====================================
+  texto += '╔' + '═'.repeat(78) + '╗\n';
+  texto += '║' + `🏥 rehabiMovement - Sistema de Rehabilitación`.padEnd(78) + '║\n';
+  texto += '╠' + '═'.repeat(78) + '╣\n';
+  
+  // Resumen de la terapia
+  const totalEjercicios = this.getTotalEjercicios(terapia);
+  texto += '║' + `📈 RESUMEN: ${totalEjercicios} ejercicios terapéuticos total`.padEnd(78) + '║\n';
+  
+  if (terapia.duracion_estimada) {
+    texto += '║' + `⏱️ Duración estimada: ${this.formatDuracion(terapia.duracion_estimada)}`.padEnd(78) + '║\n';
+  }
+  
+  const today = new Date().toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  texto += '║' + `📅 Generado: ${today}`.padEnd(78) + '║\n';
+  texto += '║' + `🆔 ID Terapia: ${terapia.id || 'N/A'}`.padEnd(78) + '║\n';
+  texto += '║' + `👩‍⚕️ Creado por: Administrador del Sistema`.padEnd(78) + '║\n';
+  
+  texto += '╚' + '═'.repeat(78) + '╝\n';
+
+  console.log('✅ Formato terminal aplicado exitosamente a terapia!');
+  return texto;
+}
 
   getNombreSeccion(key: string): string {
     const secciones: { [key: string]: string } = {

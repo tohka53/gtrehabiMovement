@@ -39,6 +39,8 @@ export interface EjercicioTerapeutico {
   descripcion?: string;
   intensidad?: 'muy_baja' | 'baja' | 'moderada' | 'alta' | 'muy_alta';
   precauciones?: string;
+  cals?: number; // ← NUEVA PROPIEDAD AGREGADA
+
 }
 
 export interface TipoEjercicioTerapeutico {

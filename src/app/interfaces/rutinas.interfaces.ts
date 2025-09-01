@@ -17,6 +17,7 @@ export interface Ejercicio {
   series?: number;
   duracion?: string;
   distancia?: string;
+  cals?: number;
   peso?: string;
   rpe?: number;
   tiempo_trabajo?: string;

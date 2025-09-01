@@ -467,6 +467,7 @@ getFormattedRutina(rutina: Rutina | null, seguimiento?: SeguimientoDetalladoExte
         // Detalles del ejercicio con iconos
         const detalles = [];
         if (ejercicio.repeticiones) detalles.push(`🔢 ${ejercicio.repeticiones} reps`);
+        if (ejercicio.cals) detalles.push(`🔢 ${ejercicio.cals} cals`);
         if (ejercicio.series) detalles.push(`🔄 ${ejercicio.series} series`);
         if (ejercicio.peso) detalles.push(`⚖️  ${ejercicio.peso}`);
         if (ejercicio.distancia) detalles.push(`📏 ${ejercicio.distancia}`);
@@ -481,7 +482,9 @@ getFormattedRutina(rutina: Rutina | null, seguimiento?: SeguimientoDetalladoExte
         if (ejercicio.rpe) {
           texto += `    💪 RPE: ${ejercicio.rpe}/10\n`;
         }
-        
+         if (ejercicio.cals) {
+          texto += `    💪 Cals: ${ejercicio.cals}/10\n`;
+        }
         // Descanso si existe
         if (ejercicio.descanso) {
           texto += `    ⏸️  Descanso: ${ejercicio.descanso}\n`;
