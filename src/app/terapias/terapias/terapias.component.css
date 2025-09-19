@@ -97,26 +97,32 @@
 @media (max-width: 767px) {
   .modal-panel,
   .modal-view-panel {
-    margin-left: 0;
-    max-width: calc(100vw - 2rem);
-    margin: 1rem;
+    max-width: calc(100vw - 2rem) !important;
+    width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
   }
   
   .modal-container,
   .modal-view-container {
-    padding: 0.5rem;
+    padding: 1rem !important;
+  }
+  
+  .modal-container {
+    display: flex !important;
+    align-items: left !important;
+    justify-content: left !important;
   }
   
   .modal-view-container {
-    justify-content: center;
+    justify-content: left !important;
     padding-right: 0.5rem;
   }
 }
 
 @media (max-width: 1024px) and (min-width: 768px) {
   .modal-panel {
-    margin-left: 240px;
-    max-width: calc(100vw - 280px);
+    max-width: 90vw !important;
+    margin: 0 !important;
   }
   
   .modal-view-panel {
@@ -124,7 +130,6 @@
     max-width: calc(100vw - 300px);
   }
 }
-
 /* Efectos para tags */
 .tag {
   animation: tagAppear 0.2s ease-out;

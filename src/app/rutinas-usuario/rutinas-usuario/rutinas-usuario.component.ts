@@ -45,7 +45,17 @@ export interface AsignacionCompleta {
   fecha_asignacion: string;
   notas_asignacion?: string;
   status?: number;
-  es_activa?: boolean; // Nueva propiedad para determinar si está activa
+  es_activa?: boolean;
+}
+
+// NUEVA INTERFACE: Para manejar múltiples asignaciones
+export interface AsignacionRutina {
+  id: number; // ID único temporal para el formulario
+  id_rutina: number;
+  fecha_inicio: string;
+  duracion_dias: number;
+  notas: string;
+  rutina_nombre?: string; // Para mostrar en la UI
 }
 
 @Component({
@@ -68,19 +78,27 @@ export class RutinasUsuarioComponent implements OnInit {
   selectedAsignacion: AsignacionCompleta | null = null;
   seguimientoDetalle: any[] = [];
 
-  // Formulario de asignación (sin fecha_fin)
-  asignacionForm = {
-    id_rutina: 0,
-    usuarios_seleccionados: [] as number[],
-    fecha_inicio: '',
-    notas: ''
-  };
+  // NUEVA FUNCIONALIDAD: Formulario de múltiples asignaciones
+  asignacionesRutinas: AsignacionRutina[] = [];
+  usuarios_seleccionados: number[] = [];
+  nextTempId = 1; // Para generar IDs únicos temporales
+
+  // Opciones de duración predefinidas
+  duracionesDisponibles = [
+    { dias: 7, label: '1 semana' },
+    { dias: 14, label: '2 semanas' },
+    { dias: 21, label: '3 semanas' },
+    { dias: 30, label: '1 mes' },
+    { dias: 45, label: '1.5 meses' },
+    { dias: 60, label: '2 meses' },
+    { dias: 90, label: '3 meses' }
+  ];
 
   // Filtros y búsqueda
   searchTerm = '';
   estadoFilter = 'all';
   rutinaFilter = 'all';
-  mostrarInactivas = true; // Toggle para mostrar/ocultar inactivas
+  mostrarInactivas = true;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -89,7 +107,6 @@ export class RutinasUsuarioComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
-    // Ejecutar limpieza de asignaciones vencidas al inicializar
     await this.procesarAsignacionesVencidas();
   }
 
@@ -129,7 +146,6 @@ export class RutinasUsuarioComponent implements OnInit {
 
   async loadAsignaciones(): Promise<void> {
     try {
-      // Obtener asignaciones masivas incluyendo las inactivas
       let query = this.supabaseService.client
         .from('rutina_asignaciones_masivas')
         .select(`
@@ -146,7 +162,6 @@ export class RutinasUsuarioComponent implements OnInit {
           profiles!rutina_asignaciones_masivas_asignado_por_fkey(full_name)
         `);
 
-      // Si no se muestran inactivas, filtrar por status = 1
       if (!this.mostrarInactivas) {
         query = query.eq('status', 1);
       }
@@ -192,7 +207,6 @@ export class RutinasUsuarioComponent implements OnInit {
 
       let asignacionesFiltradas = asignacionesData || [];
       
-      // Aplicar filtro de inactivas si es necesario
       if (!this.mostrarInactivas) {
         asignacionesFiltradas = asignacionesFiltradas.filter(a => a.status === 1);
       }
@@ -227,13 +241,11 @@ export class RutinasUsuarioComponent implements OnInit {
     }
   }
 
-  // Método para procesar asignaciones vencidas automáticamente
   async procesarAsignacionesVencidas(): Promise<void> {
     try {
       const hoy = new Date();
       const fechaHoy = hoy.toISOString().split('T')[0];
 
-      // Buscar asignaciones activas que hayan vencido
       const { data: asignacionesVencidas, error } = await this.supabaseService.client
         .from('rutina_asignaciones_masivas')
         .select('id')
@@ -248,7 +260,6 @@ export class RutinasUsuarioComponent implements OnInit {
       if (asignacionesVencidas && asignacionesVencidas.length > 0) {
         const idsVencidas = asignacionesVencidas.map(a => a.id);
         
-        // Marcar como inactivas (status = 0)
         const { error: updateError } = await this.supabaseService.client
           .from('rutina_asignaciones_masivas')
           .update({ 
@@ -269,21 +280,233 @@ export class RutinasUsuarioComponent implements OnInit {
     }
   }
 
+  // ==============================================
+  // NUEVAS FUNCIONES PARA MÚLTIPLES ASIGNACIONES
+  // ==============================================
+
   openAsignarModal(): void {
-    this.asignacionForm = {
-      id_rutina: 0,
-      usuarios_seleccionados: [],
-      fecha_inicio: this.getTomorrowDate(),
-      notas: ''
-    };
+    // Reiniciar formulario
+    this.asignacionesRutinas = [];
+    this.usuarios_seleccionados = [];
+    this.nextTempId = 1;
     this.error = '';
+    
+    // Agregar primera asignación por defecto
+    this.agregarNuevaAsignacion();
     this.showAsignarModal = true;
   }
 
   closeAsignarModal(): void {
     this.showAsignarModal = false;
     this.error = '';
+    this.asignacionesRutinas = [];
+    this.usuarios_seleccionados = [];
   }
+
+  agregarNuevaAsignacion(): void {
+    const nuevaAsignacion: AsignacionRutina = {
+      id: this.nextTempId++,
+      id_rutina: 0,
+      fecha_inicio: this.getTomorrowDate(),
+      duracion_dias: 30, // Por defecto 1 mes
+      notas: '',
+      rutina_nombre: ''
+    };
+
+    this.asignacionesRutinas.push(nuevaAsignacion);
+  }
+
+  eliminarAsignacion(tempId: number): void {
+    this.asignacionesRutinas = this.asignacionesRutinas.filter(a => a.id !== tempId);
+  }
+
+  onRutinaChange(asignacion: AsignacionRutina): void {
+    const rutina = this.rutinas.find(r => r.id === asignacion.id_rutina);
+    asignacion.rutina_nombre = rutina?.nombre || '';
+  }
+
+  calcularFechaFin(fechaInicio: string, duracionDias: number): string {
+    if (!fechaInicio) return '';
+    const fecha = new Date(fechaInicio);
+    fecha.setDate(fecha.getDate() + duracionDias);
+    return fecha.toISOString().split('T')[0];
+  }
+
+  toggleUsuario(userId: number): void {
+    const index = this.usuarios_seleccionados.indexOf(userId);
+    if (index > -1) {
+      this.usuarios_seleccionados.splice(index, 1);
+    } else {
+      this.usuarios_seleccionados.push(userId);
+    }
+  }
+
+  isUsuarioSelected(userId: number): boolean {
+    return this.usuarios_seleccionados.includes(userId);
+  }
+
+  selectAllUsuarios(): void {
+    this.usuarios_seleccionados = this.usuarios.map(u => u.id!);
+  }
+
+  clearAllUsuarios(): void {
+    this.usuarios_seleccionados = [];
+  }
+
+  async asignarRutinas(): Promise<void> {
+    try {
+      this.error = '';
+      
+      // Validaciones
+      if (this.asignacionesRutinas.length === 0) {
+        this.error = 'Debe agregar al menos una rutina';
+        return;
+      }
+
+      if (this.usuarios_seleccionados.length === 0) {
+        this.error = 'Debe seleccionar al menos un usuario';
+        return;
+      }
+
+      // Validar cada asignación
+      for (let i = 0; i < this.asignacionesRutinas.length; i++) {
+        const asignacion = this.asignacionesRutinas[i];
+        if (!asignacion.id_rutina) {
+          this.error = `Debe seleccionar una rutina para la asignación ${i + 1}`;
+          return;
+        }
+        if (!asignacion.fecha_inicio) {
+          this.error = `Debe especificar la fecha de inicio para la asignación ${i + 1}`;
+          return;
+        }
+      }
+
+      this.loading = true;
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser?.id) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const asignacionesCreadas: number[] = [];
+
+      // Procesar cada asignación de rutina
+      for (const asignacionRutina of this.asignacionesRutinas) {
+        const fechaFin = this.calcularFechaFin(asignacionRutina.fecha_inicio, asignacionRutina.duracion_dias);
+        
+        try {
+          // Intentar usar la función RPC primero
+          const { data, error } = await this.supabaseService.client
+            .rpc('asignar_rutina_a_usuarios', {
+              p_id_rutina: asignacionRutina.id_rutina,
+              p_usuarios_ids: this.usuarios_seleccionados,
+              p_asignado_por: currentUser.id,
+              p_fecha_inicio: asignacionRutina.fecha_inicio,
+              p_fecha_fin: fechaFin,
+              p_notas: asignacionRutina.notas || null
+            });
+
+          if (error) throw error;
+          asignacionesCreadas.push(data);
+
+        } catch (rpcError) {
+          console.log('Función RPC no disponible, usando método manual para rutina:', asignacionRutina.rutina_nombre);
+          
+          // Método manual
+          const asignacionData = {
+            id_rutina: asignacionRutina.id_rutina,
+            usuarios_asignados: this.usuarios_seleccionados,
+            asignado_por: currentUser.id,
+            fecha_inicio: asignacionRutina.fecha_inicio,
+            fecha_fin: fechaFin,
+            notas: asignacionRutina.notas || null,
+            estado: 'activa'
+          };
+
+          const { data: asignacion, error: asignacionError } = await this.supabaseService.client
+            .from('rutina_asignaciones_masivas')
+            .insert(asignacionData)
+            .select()
+            .single();
+
+          if (asignacionError) throw asignacionError;
+
+          const seguimientosData = this.usuarios_seleccionados.map(userId => ({
+            id_asignacion_masiva: asignacion.id,
+            id_profile: userId,
+            id_rutina: asignacionRutina.id_rutina,
+            progreso: 0,
+            estado_individual: 'pendiente'
+          }));
+
+          const { error: seguimientoError } = await this.supabaseService.client
+            .from('rutina_seguimiento_individual')
+            .insert(seguimientosData);
+
+          if (seguimientoError) throw seguimientoError;
+          
+          asignacionesCreadas.push(asignacion.id);
+        }
+      }
+
+      console.log('Rutinas asignadas exitosamente:', asignacionesCreadas);
+
+      await this.loadAsignaciones();
+      this.closeAsignarModal();
+
+      const mensaje = `Se asignaron ${this.asignacionesRutinas.length} rutinas exitosamente a ${this.usuarios_seleccionados.length} usuarios:\n` +
+        this.asignacionesRutinas.map(a => `• ${a.rutina_nombre} (${a.duracion_dias} días)`).join('\n');
+      
+      alert(mensaje);
+
+    } catch (error) {
+      console.error('Error asignando rutinas:', error);
+      this.error = error instanceof Error ? error.message : 'Error al asignar las rutinas';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  // Método para obtener el resumen de asignaciones
+  getResumenAsignaciones(): string {
+    if (this.asignacionesRutinas.length === 0) return '';
+    
+    const rutinasSeleccionadas = this.asignacionesRutinas
+      .filter(a => a.id_rutina > 0)
+      .map(a => a.rutina_nombre || this.getRutinaNombre(a.id_rutina));
+
+    return `${this.asignacionesRutinas.length} rutinas seleccionadas: ${rutinasSeleccionadas.join(', ')}`;
+  }
+
+  // Calcular duración total del programa
+  getDuracionTotalPrograma(): number {
+    if (this.asignacionesRutinas.length === 0) return 0;
+    
+    // Encontrar la fecha de inicio más temprana y la fecha de fin más tardía
+    let fechaInicioMin = this.asignacionesRutinas[0]?.fecha_inicio;
+    let fechaFinMax = '';
+
+    this.asignacionesRutinas.forEach(asignacion => {
+      if (asignacion.fecha_inicio < fechaInicioMin) {
+        fechaInicioMin = asignacion.fecha_inicio;
+      }
+      
+      const fechaFin = this.calcularFechaFin(asignacion.fecha_inicio, asignacion.duracion_dias);
+      if (fechaFin > fechaFinMax) {
+        fechaFinMax = fechaFin;
+      }
+    });
+
+    if (!fechaInicioMin || !fechaFinMax) return 0;
+
+    const inicio = new Date(fechaInicioMin);
+    const fin = new Date(fechaFinMax);
+    const diffTime = fin.getTime() - inicio.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  // ==============================================
+  // FUNCIONES EXISTENTES (mantenidas)
+  // ==============================================
 
   async openVerModal(asignacion: AsignacionCompleta): Promise<void> {
     this.selectedAsignacion = asignacion;
@@ -346,133 +569,6 @@ export class RutinasUsuarioComponent implements OnInit {
     }
   }
 
-  toggleUsuario(userId: number): void {
-    const index = this.asignacionForm.usuarios_seleccionados.indexOf(userId);
-    if (index > -1) {
-      this.asignacionForm.usuarios_seleccionados.splice(index, 1);
-    } else {
-      this.asignacionForm.usuarios_seleccionados.push(userId);
-    }
-  }
-
-  isUsuarioSelected(userId: number): boolean {
-    return this.asignacionForm.usuarios_seleccionados.includes(userId);
-  }
-
-  selectAllUsuarios(): void {
-    this.asignacionForm.usuarios_seleccionados = this.usuarios.map(u => u.id!);
-  }
-
-  clearAllUsuarios(): void {
-    this.asignacionForm.usuarios_seleccionados = [];
-  }
-
-  // Método para calcular fecha fin automáticamente (1 mes después)
-  calcularFechaFin(fechaInicio: string): string {
-    if (!fechaInicio) return '';
-    const fecha = new Date(fechaInicio);
-    fecha.setMonth(fecha.getMonth() + 1);
-    return fecha.toISOString().split('T')[0];
-  }
-
-  async asignarRutina(): Promise<void> {
-    try {
-      this.error = '';
-
-      // Validaciones
-      if (!this.asignacionForm.id_rutina) {
-        this.error = 'Debe seleccionar una rutina';
-        return;
-      }
-
-      if (this.asignacionForm.usuarios_seleccionados.length === 0) {
-        this.error = 'Debe seleccionar al menos un usuario';
-        return;
-      }
-
-      if (!this.asignacionForm.fecha_inicio) {
-        this.error = 'Debe especificar la fecha de inicio';
-        return;
-      }
-
-      this.loading = true;
-
-      const currentUser = this.authService.getCurrentUser();
-      if (!currentUser?.id) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      // Calcular fecha de fin automáticamente (1 mes después)
-      const fechaFin = this.calcularFechaFin(this.asignacionForm.fecha_inicio);
-
-      let asignacionId: number;
-
-      try {
-        const { data, error } = await this.supabaseService.client
-          .rpc('asignar_rutina_a_usuarios', {
-            p_id_rutina: this.asignacionForm.id_rutina,
-            p_usuarios_ids: this.asignacionForm.usuarios_seleccionados,
-            p_asignado_por: currentUser.id,
-            p_fecha_inicio: this.asignacionForm.fecha_inicio,
-            p_fecha_fin: fechaFin, // Fecha calculada automáticamente
-            p_notas: this.asignacionForm.notas || null
-          });
-
-        if (error) throw error;
-        asignacionId = data;
-
-      } catch (rpcError) {
-        console.log('Función RPC no disponible, usando método manual');
-        
-        const asignacionData = {
-          id_rutina: this.asignacionForm.id_rutina,
-          usuarios_asignados: this.asignacionForm.usuarios_seleccionados,
-          asignado_por: currentUser.id,
-          fecha_inicio: this.asignacionForm.fecha_inicio,
-          fecha_fin: fechaFin, // Fecha calculada automáticamente
-          notas: this.asignacionForm.notas || null,
-          estado: 'activa'
-        };
-
-        const { data: asignacion, error: asignacionError } = await this.supabaseService.client
-          .from('rutina_asignaciones_masivas')
-          .insert(asignacionData)
-          .select()
-          .single();
-
-        if (asignacionError) throw asignacionError;
-        asignacionId = asignacion.id;
-
-        const seguimientosData = this.asignacionForm.usuarios_seleccionados.map(userId => ({
-          id_asignacion_masiva: asignacionId,
-          id_profile: userId,
-          id_rutina: this.asignacionForm.id_rutina,
-          progreso: 0,
-          estado_individual: 'pendiente'
-        }));
-
-        const { error: seguimientoError } = await this.supabaseService.client
-          .from('rutina_seguimiento_individual')
-          .insert(seguimientosData);
-
-        if (seguimientoError) throw seguimientoError;
-      }
-
-      console.log('Rutina asignada exitosamente, ID:', asignacionId);
-
-      await this.loadAsignaciones();
-      this.closeAsignarModal();
-
-      alert(`Rutina asignada exitosamente a ${this.asignacionForm.usuarios_seleccionados.length} usuarios por 1 mes`);
-
-    } catch (error) {
-      console.error('Error asignando rutina:', error);
-      this.error = error instanceof Error ? error.message : 'Error al asignar la rutina';
-    } finally {
-      this.loading = false;
-    }
-  }
-
   async cancelarAsignacion(asignacionId: number): Promise<void> {
     const confirmar = confirm('¿Está seguro de cancelar esta asignación? Esta acción afectará a todos los usuarios asignados.');
     
@@ -482,7 +578,7 @@ export class RutinasUsuarioComponent implements OnInit {
           .from('rutina_asignaciones_masivas')
           .update({ 
             estado: 'cancelada',
-            status: 0, // También marcar como inactiva
+            status: 0,
             updated_at: new Date().toISOString()
           })
           .eq('id', asignacionId);
@@ -593,7 +689,6 @@ export class RutinasUsuarioComponent implements OnInit {
     };
   }
 
-  // Método para toggle mostrar/ocultar inactivas
   async toggleMostrarInactivas(): Promise<void> {
     this.mostrarInactivas = !this.mostrarInactivas;
     await this.loadAsignaciones();
@@ -647,7 +742,6 @@ export class RutinasUsuarioComponent implements OnInit {
     return tomorrow.toISOString().split('T')[0];
   }
 
-  // Calcular días restantes para una asignación
   getDiasRestantes(fechaFin: string): number {
     const fin = new Date(fechaFin);
     const hoy = new Date();
@@ -655,12 +749,10 @@ export class RutinasUsuarioComponent implements OnInit {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  // Verificar si ya venció
   isVencida(fechaFin: string): boolean {
     return this.getDiasRestantes(fechaFin) < 0;
   }
 
-  // Filtros actualizados
   get filteredAsignaciones(): AsignacionCompleta[] {
     let filtered = [...this.asignaciones];
 
@@ -707,6 +799,10 @@ export class RutinasUsuarioComponent implements OnInit {
   }
 
   trackByRutinaId(index: number, item: Rutina): any {
+    return item.id;
+  }
+
+  trackByTempId(index: number, item: AsignacionRutina): any {
     return item.id;
   }
 }
