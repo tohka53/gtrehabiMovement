@@ -1,4 +1,4 @@
-// src/app/rutinas-usuario/rutinas-usuario.component.ts
+// src/app/rutinas-usuario/rutinas-usuario.component.ts (Actualizado con vista de calendario)
 import { Component, OnInit } from '@angular/core';
 import { SupabaseService } from '../../services/supabase.service';
 import { AuthService } from '../../services/auth.service';
@@ -48,6 +48,19 @@ export interface AsignacionCompleta {
   es_activa?: boolean;
 }
 
+export interface SeguimientoDetallado {
+  seguimiento_id: number;
+  asignacion_id: number;
+  id_profile: number;
+  username: string;
+  full_name: string;
+  progreso: number;
+  estado_individual: string;
+  fecha_inicio_real?: string;
+  fecha_fin_real?: string;
+  notas_individuales?: string;
+}
+
 // NUEVA INTERFACE: Para manejar múltiples asignaciones
 export interface AsignacionRutina {
   id: number; // ID único temporal para el formulario
@@ -77,6 +90,9 @@ export class RutinasUsuarioComponent implements OnInit {
   showVerModal = false;
   selectedAsignacion: AsignacionCompleta | null = null;
   seguimientoDetalle: any[] = [];
+
+  // NUEVO: Control de vistas
+  vistaActiva: 'tabla' | 'calendario' = 'tabla';
 
   // NUEVA FUNCIONALIDAD: Formulario de múltiples asignaciones
   asignacionesRutinas: AsignacionRutina[] = [];
@@ -109,6 +125,32 @@ export class RutinasUsuarioComponent implements OnInit {
     await this.loadInitialData();
     await this.procesarAsignacionesVencidas();
   }
+
+  // ==============================================
+  // CONTROL DE VISTAS
+  // ==============================================
+
+  cambiarVista(vista: 'tabla' | 'calendario'): void {
+    this.vistaActiva = vista;
+  }
+
+  // ==============================================
+  // EVENTOS DEL CALENDARIO
+  // ==============================================
+
+  onVerAsignacionDesdeCalendario(asignacion: AsignacionCompleta): void {
+    this.openVerModal(asignacion);
+  }
+
+  onEditarAsignacionDesdeCalendario(asignacion: AsignacionCompleta): void {
+    // Aquí puedes implementar la lógica para editar desde el calendario
+    console.log('Editar asignación desde calendario:', asignacion);
+    // Por ejemplo, abrir un modal de edición específico
+  }
+
+  // ==============================================
+  // MÉTODOS EXISTENTES (mantener todos)
+  // ==============================================
 
   async loadInitialData(): Promise<void> {
     this.loading = true;
@@ -281,17 +323,14 @@ export class RutinasUsuarioComponent implements OnInit {
   }
 
   // ==============================================
-  // NUEVAS FUNCIONES PARA MÚLTIPLES ASIGNACIONES
+  // FUNCIONES PARA MÚLTIPLES ASIGNACIONES
   // ==============================================
 
   openAsignarModal(): void {
-    // Reiniciar formulario
     this.asignacionesRutinas = [];
     this.usuarios_seleccionados = [];
     this.nextTempId = 1;
     this.error = '';
-    
-    // Agregar primera asignación por defecto
     this.agregarNuevaAsignacion();
     this.showAsignarModal = true;
   }
@@ -308,7 +347,7 @@ export class RutinasUsuarioComponent implements OnInit {
       id: this.nextTempId++,
       id_rutina: 0,
       fecha_inicio: this.getTomorrowDate(),
-      duracion_dias: 30, // Por defecto 1 mes
+      duracion_dias: 30,
       notas: '',
       rutina_nombre: ''
     };
@@ -357,7 +396,6 @@ export class RutinasUsuarioComponent implements OnInit {
     try {
       this.error = '';
       
-      // Validaciones
       if (this.asignacionesRutinas.length === 0) {
         this.error = 'Debe agregar al menos una rutina';
         return;
@@ -368,7 +406,6 @@ export class RutinasUsuarioComponent implements OnInit {
         return;
       }
 
-      // Validar cada asignación
       for (let i = 0; i < this.asignacionesRutinas.length; i++) {
         const asignacion = this.asignacionesRutinas[i];
         if (!asignacion.id_rutina) {
@@ -389,12 +426,10 @@ export class RutinasUsuarioComponent implements OnInit {
 
       const asignacionesCreadas: number[] = [];
 
-      // Procesar cada asignación de rutina
       for (const asignacionRutina of this.asignacionesRutinas) {
         const fechaFin = this.calcularFechaFin(asignacionRutina.fecha_inicio, asignacionRutina.duracion_dias);
         
         try {
-          // Intentar usar la función RPC primero
           const { data, error } = await this.supabaseService.client
             .rpc('asignar_rutina_a_usuarios', {
               p_id_rutina: asignacionRutina.id_rutina,
@@ -411,7 +446,6 @@ export class RutinasUsuarioComponent implements OnInit {
         } catch (rpcError) {
           console.log('Función RPC no disponible, usando método manual para rutina:', asignacionRutina.rutina_nombre);
           
-          // Método manual
           const asignacionData = {
             id_rutina: asignacionRutina.id_rutina,
             usuarios_asignados: this.usuarios_seleccionados,
@@ -466,7 +500,6 @@ export class RutinasUsuarioComponent implements OnInit {
     }
   }
 
-  // Método para obtener el resumen de asignaciones
   getResumenAsignaciones(): string {
     if (this.asignacionesRutinas.length === 0) return '';
     
@@ -477,11 +510,9 @@ export class RutinasUsuarioComponent implements OnInit {
     return `${this.asignacionesRutinas.length} rutinas seleccionadas: ${rutinasSeleccionadas.join(', ')}`;
   }
 
-  // Calcular duración total del programa
   getDuracionTotalPrograma(): number {
     if (this.asignacionesRutinas.length === 0) return 0;
     
-    // Encontrar la fecha de inicio más temprana y la fecha de fin más tardía
     let fechaInicioMin = this.asignacionesRutinas[0]?.fecha_inicio;
     let fechaFinMax = '';
 
@@ -694,7 +725,10 @@ export class RutinasUsuarioComponent implements OnInit {
     await this.loadAsignaciones();
   }
 
-  // Métodos de utilidad
+  // ==============================================
+  // MÉTODOS DE UTILIDAD
+  // ==============================================
+
   getRutinaNombre(rutinaId: number): string {
     const rutina = this.rutinas.find(r => r.id === rutinaId);
     return rutina?.nombre || 'Rutina no encontrada';
@@ -790,6 +824,7 @@ export class RutinasUsuarioComponent implements OnInit {
     return this.authService.isAdmin() || this.authService.hasProfile(3);
   }
 
+  // Track by functions para optimización
   trackByAsignacionId(index: number, item: AsignacionCompleta): any {
     return item.asignacion_id;
   }
@@ -804,5 +839,19 @@ export class RutinasUsuarioComponent implements OnInit {
 
   trackByTempId(index: number, item: AsignacionRutina): any {
     return item.id;
+  }
+
+  // Para el componente calendario
+  trackByFecha(index: number, item: any): any {
+    return item.fecha.getTime();
+  }
+
+  trackByAsignacion(index: number, item: any): any {
+    return item.asignacion.asignacion_id;
+  }
+
+  getTooltipText(asignacionCalendario: any): string {
+    const asignacion = asignacionCalendario.asignacion;
+    return `${asignacion.rutina_nombre} - ${asignacionCalendario.tipo} - ${asignacion.usuarios_count} usuarios - Estado: ${asignacion.estado_asignacion}`;
   }
 }

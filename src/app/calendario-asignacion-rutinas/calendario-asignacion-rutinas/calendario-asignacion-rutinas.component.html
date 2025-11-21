@@ -1,0 +1,431 @@
+<!-- src/app/calendario-asignacion-rutinas/calendario-asignacion-rutinas.component.html -->
+<div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+  
+  <!-- Header del Calendario con Controles -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      
+      <!-- Título y Navegación de Mes -->
+      <div class="flex items-center space-x-4">
+        <button
+          (click)="mesAnterior()"
+          class="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          title="Mes anterior"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        
+        <div class="text-center">
+          <h2 class="text-2xl font-bold text-gray-900">
+            {{ meses[mesActual.getMonth()] }} {{ mesActual.getFullYear() }}
+          </h2>
+          <button
+            (click)="irAHoy()"
+            class="text-sm text-red-600 hover:text-red-800 transition-colors"
+          >
+            Ir a hoy
+          </button>
+        </div>
+        
+        <button
+          (click)="mesSiguiente()"
+          class="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          title="Mes siguiente"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Controles y Filtros -->
+      <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+        
+        <!-- Toggle para vista completa -->
+        <div class="flex items-center">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              [(ngModel)]="mostrarSoloIniciosFines"
+              (change)="toggleVistaCompleta()"
+              class="sr-only"
+            />
+            <div class="relative">
+              <div class="block bg-gray-300 w-10 h-6 rounded-full"
+                   [class.bg-red-500]="mostrarSoloIniciosFines"></div>
+              <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform"
+                   [class.translate-x-4]="mostrarSoloIniciosFines"></div>
+            </div>
+            <span class="ml-2 text-sm text-gray-700">
+              Solo inicios/fines
+            </span>
+          </label>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex items-center space-x-3">
+          <!-- Filtro por Estado -->
+          <select
+            [(ngModel)]="filtroEstado"
+            (change)="onFiltroChange()"
+            class="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-red-500 focus:border-red-500"
+          >
+            <option value="todas">Todas</option>
+            <option value="activas">Activas</option>
+            <option value="completadas">Completadas</option>
+            <option value="vencidas">Vencidas</option>
+          </select>
+
+          <!-- Filtro por Rutina -->
+          <select
+            [(ngModel)]="filtroRutina"
+            (change)="onFiltroChange()"
+            class="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-red-500 focus:border-red-500"
+          >
+            <option value="todas">Todas las rutinas</option>
+            <option *ngFor="let rutina of rutinasUnicas" [value]="rutina">
+              {{ rutina }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas del Calendario -->
+    <div class="mt-4 grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="text-lg font-bold text-gray-900">{{ getEstadisticasCalendario().total }}</div>
+        <div class="text-xs text-gray-500">Total Asignaciones</div>
+      </div>
+      <div class="bg-green-50 rounded-lg p-3">
+        <div class="text-lg font-bold text-green-600">{{ getEstadisticasCalendario().activas }}</div>
+        <div class="text-xs text-gray-500">Activas</div>
+      </div>
+      <div class="bg-blue-50 rounded-lg p-3">
+        <div class="text-lg font-bold text-blue-600">{{ getEstadisticasCalendario().completadas }}</div>
+        <div class="text-xs text-gray-500">Completadas</div>
+      </div>
+      <div class="bg-red-50 rounded-lg p-3">
+        <div class="text-lg font-bold text-red-600">{{ getEstadisticasCalendario().vencidas }}</div>
+        <div class="text-xs text-gray-500">Vencidas</div>
+      </div>
+      <div class="bg-yellow-50 rounded-lg p-3">
+        <div class="text-lg font-bold text-yellow-600">{{ getDiasConAsignaciones() }}</div>
+        <div class="text-xs text-gray-500">Días con Actividad</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendario -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    
+    <!-- Encabezados de días de la semana -->
+    <div class="grid grid-cols-7 bg-gray-50 border-b">
+      <div
+        *ngFor="let dia of diasSemana"
+        class="px-2 py-3 text-center text-sm font-medium text-gray-500"
+      >
+        {{ dia }}
+      </div>
+    </div>
+
+    <!-- Grid del calendario -->
+    <div class="grid grid-cols-7 divide-x divide-y divide-gray-200">
+      <div
+        *ngFor="let dia of diasCalendario; trackBy: trackByFecha"
+        class="relative min-h-32 p-1 cursor-pointer hover:bg-gray-50 transition-colors"
+        [class.bg-gray-100]="!dia.esMesActual"
+        [class.bg-blue-50]="dia.esHoy && dia.esMesActual"
+        [class.ring-2]="dia.esHoy"
+        [class.ring-blue-400]="dia.esHoy"
+        (click)="onDiaClick(dia)"
+      >
+        
+        <!-- Número del día -->
+        <div class="flex justify-between items-start mb-1">
+          <span
+            class="text-sm font-medium"
+            [class.text-gray-400]="!dia.esMesActual"
+            [class.text-gray-900]="dia.esMesActual && !dia.esHoy"
+            [class.text-blue-600]="dia.esHoy"
+            [class.font-bold]="dia.esHoy"
+          >
+            {{ dia.fecha.getDate() }}
+          </span>
+          
+          <!-- Indicador de cantidad de asignaciones -->
+          <span
+            *ngIf="dia.asignaciones.length > 0"
+            class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full"
+            [class.bg-gray-400]="!dia.esMesActual"
+          >
+            {{ dia.asignaciones.length }}
+          </span>
+        </div>
+
+        <!-- Lista de asignaciones del día -->
+        <div class="space-y-1">
+          <div
+            *ngFor="let asignacionCalendario of dia.asignaciones; trackBy: trackByAsignacion; let i = index"
+            class="text-xs p-1 rounded border-l-2 cursor-pointer hover:shadow-sm transition-shadow"
+            [class.opacity-60]="!dia.esMesActual"
+            [ngClass]="{
+              'bg-green-50 border-green-400 text-green-800': asignacionCalendario.tipo === 'inicio',
+              'bg-purple-50 border-purple-400 text-purple-800': asignacionCalendario.tipo === 'fin',
+              'bg-yellow-50 border-yellow-400 text-yellow-700': asignacionCalendario.tipo === 'en_curso'
+            }"
+            [title]="getTooltipText(asignacionCalendario)"
+          >
+            <div class="flex items-center justify-between">
+              <!-- Ícono y tipo -->
+              <div class="flex items-center min-w-0 flex-1">
+                <i [class]="getTipoEventoIcon(asignacionCalendario.tipo)" class="mr-1 flex-shrink-0"></i>
+                <span class="truncate font-medium">
+                  {{ asignacionCalendario.asignacion.rutina_nombre }}
+                </span>
+              </div>
+              
+              <!-- Estado de la asignación -->
+              <div class="flex-shrink-0 ml-1">
+                <span
+                  class="inline-block w-2 h-2 rounded-full"
+                  [ngClass]="{
+                    'bg-green-500': asignacionCalendario.asignacion.estado_asignacion === 'activa' && asignacionCalendario.asignacion.es_activa,
+                    'bg-blue-500': asignacionCalendario.asignacion.estado_asignacion === 'completada',
+                    'bg-red-500': asignacionCalendario.asignacion.estado_asignacion === 'cancelada' || !asignacionCalendario.asignacion.es_activa,
+                    'bg-yellow-500': asignacionCalendario.asignacion.estado_asignacion === 'pausada'
+                  }"
+                ></span>
+              </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-xs opacity-75">
+                {{ asignacionCalendario.asignacion.usuarios_count }} usuarios
+              </span>
+              <span
+                *ngIf="asignacionCalendario.tipo === 'en_curso' && asignacionCalendario.progreso !== undefined"
+                class="text-xs font-medium"
+              >
+                {{ asignacionCalendario.progreso.toFixed(0) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Indicador de más asignaciones si hay muchas -->
+        <div
+          *ngIf="dia.asignaciones.length > 3"
+          class="text-xs text-gray-500 text-center mt-1"
+        >
+          +{{ dia.asignaciones.length - 3 }} más
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="bg-white rounded-lg shadow p-4 mt-6">
+    <h4 class="text-sm font-medium text-gray-900 mb-3">Leyenda</h4>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+      
+      <!-- Tipos de eventos -->
+      <div>
+        <h5 class="font-medium text-gray-700 mb-2">Tipos de Eventos</h5>
+        <div class="space-y-1">
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-green-100 border-l-2 border-green-400 mr-2"></div>
+            <i class="fas fa-play-circle text-green-600 mr-1"></i>
+            <span class="text-gray-700">Inicio de rutina</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-yellow-100 border-l-2 border-yellow-400 mr-2"></div>
+            <i class="fas fa-clock text-yellow-600 mr-1"></i>
+            <span class="text-gray-700">En progreso</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-purple-100 border-l-2 border-purple-400 mr-2"></div>
+            <i class="fas fa-stop-circle text-purple-600 mr-1"></i>
+            <span class="text-gray-700">Fin de rutina</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estados de asignación -->
+      <div>
+        <h5 class="font-medium text-gray-700 mb-2">Estados</h5>
+        <div class="space-y-1">
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            <span class="text-gray-700">Activa</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+            <span class="text-gray-700">Completada</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+            <span class="text-gray-700">Pausada</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+            <span class="text-gray-700">Cancelada/Vencida</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instrucciones de uso -->
+      <div>
+        <h5 class="font-medium text-gray-700 mb-2">Uso</h5>
+        <div class="space-y-1 text-gray-600">
+          <div>• Click en un día para ver detalles</div>
+          <div>• Números rojos indican cantidad de asignaciones</div>
+          <div>• Use filtros para personalizar la vista</div>
+          <div>• Toggle "Solo inicios/fines" para vista simplificada</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalle de Asignación -->
+<div *ngIf="showDetalleModal" class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="cerrarDetalleModal()"></div>
+
+    <!-- Modal Panel -->
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      
+      <!-- Header -->
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              {{ asignacionSeleccionada?.rutina_nombre }}
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Vista rápida desde calendario
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="bg-white px-4 pb-4 sm:px-6">
+        
+        <!-- Información básica -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="font-medium text-gray-700">Período:</span>
+              <div class="text-gray-900">
+                {{ formatDate(asignacionSeleccionada?.fecha_inicio_programada || '') }} - 
+                {{ formatDate(asignacionSeleccionada?.fecha_fin_programada || '') }}
+              </div>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Usuarios:</span>
+              <div class="text-gray-900">{{ asignacionSeleccionada?.usuarios_count }}</div>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Estado:</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2"
+                    [ngClass]="{
+                      'bg-green-100 text-green-800': asignacionSeleccionada?.estado_asignacion === 'activa' && asignacionSeleccionada?.es_activa,
+                      'bg-blue-100 text-blue-800': asignacionSeleccionada?.estado_asignacion === 'completada',
+                      'bg-red-100 text-red-800': asignacionSeleccionada?.estado_asignacion === 'cancelada' || !asignacionSeleccionada?.es_activa,
+                      'bg-yellow-100 text-yellow-800': asignacionSeleccionada?.estado_asignacion === 'pausada'
+                    }">
+                {{ asignacionSeleccionada?.estado_asignacion }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de usuarios (resumen) -->
+        <div *ngIf="seguimientosDetalle.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Usuario
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Progreso
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let seguimiento of seguimientosDetalle.slice(0, 5)" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ seguimiento.full_name }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-3">
+                      <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="seguimiento.progreso"></div>
+                    </div>
+                    <span class="text-sm text-gray-900">{{ seguimiento.progreso }}%</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        [ngClass]="{
+                          'bg-gray-100 text-gray-800': seguimiento.estado_individual === 'pendiente',
+                          'bg-yellow-100 text-yellow-800': seguimiento.estado_individual === 'en_progreso',
+                          'bg-green-100 text-green-800': seguimiento.estado_individual === 'completada'
+                        }">
+                    {{ seguimiento.estado_individual }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- Indicador de más usuarios -->
+          <div *ngIf="seguimientosDetalle.length > 5" class="bg-gray-50 px-6 py-3 text-center text-sm text-gray-500">
+            Y {{ seguimientosDetalle.length - 5 }} usuarios más...
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="loading" class="flex justify-center items-center h-32">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button
+          type="button"
+          (click)="onVerCompleto()"
+          class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+        >
+          Ver Seguimiento Completo
+        </button>
+        <button
+          type="button"
+          (click)="cerrarDetalleModal()"
+          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

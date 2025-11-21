@@ -31,6 +31,7 @@ import { ChatDiscussionComponent } from './chat-discussion/chat-discussion/chat-
 import { ValidacionComprasComponent } from './validacion-compras/validacion-compras/validacion-compras.component';
 import { MisComprasComponent } from './mis-compras/mis-compras/mis-compras.component';
 import { HttpClient, HttpClientModule, httpResource } from '@angular/common/http';
+import { CalendarioAsignacionRutinasComponent } from './calendario-asignacion-rutinas/calendario-asignacion-rutinas/calendario-asignacion-rutinas.component';
 
 // Componentes de paquetes
 inject();
@@ -59,6 +60,9 @@ inject();
     
     ValidacionComprasComponent,
     MisComprasComponent,
+    CalendarioAsignacionRutinasComponent
+    
+    
 
    
   ],

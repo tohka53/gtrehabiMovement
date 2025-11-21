@@ -71,17 +71,17 @@
       <div class="flex justify-between items-start mb-6">
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-2">
-            <h2 class="text-2xl font-bold text-gray-900">{{ paquete?.nombre || 'Sin nombre' }}</h2>
-            <span [class]="obtenerClaseTipo(paquete?.tipo)" class="px-3 py-1 text-sm font-semibold rounded-full border">
-              {{ obtenerIconoTipo(paquete?.tipo) }} {{ (paquete?.tipo || 'Sin tipo') | titlecase }}
+            <h2 class="text-2xl font-bold text-gray-900">{{ paquete.nombre || 'Sin nombre' }}</h2>
+            <span [class]="obtenerClaseTipo(paquete.tipo)" class="px-3 py-1 text-sm font-semibold rounded-full border">
+              {{ obtenerIconoTipo(paquete.tipo) }} {{ (paquete.tipo || 'Sin tipo') | titlecase }}
             </span>
-            <span [class]="obtenerClaseStatus(paquete?.status)" class="px-3 py-1 text-sm font-semibold rounded-full border">
-              {{ obtenerIconoStatus(paquete?.status) }} {{ obtenerTextoStatus(paquete?.status) }}
+            <span [class]="obtenerClaseStatus(paquete.status)" class="px-3 py-1 text-sm font-semibold rounded-full border">
+              {{ obtenerIconoStatus(paquete.status) }} {{ obtenerTextoStatus(paquete.status) }}
             </span>
           </div>
           
           <p *ngIf="paquete.descripcion" class="text-gray-600 text-lg">
-            {{ paquete?.descripcion }}
+            {{ paquete.descripcion }}
           </p>
           <p *ngIf="!paquete.descripcion" class="text-gray-500 text-lg italic">
             Sin descripción disponible
@@ -102,7 +102,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-blue-900">Sesiones Incluidas</p>
-              <p class="text-2xl font-bold text-blue-600">{{ paquete?.cantidad_sesiones || 0 }}</p>
+              <p class="text-2xl font-bold text-blue-600">{{ paquete.cantidad_sesiones || 0 }}</p>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-900">Precio Base</p>
-              <p class="text-2xl font-bold text-gray-600">{{ formatearPrecio(paquete?.precio) }}</p>
+              <p class="text-2xl font-bold text-gray-600">{{ formatearPrecio(paquete.precio) }}</p>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-yellow-900">Descuento</p>
-              <p class="text-2xl font-bold text-yellow-600">{{ (paquete?.descuento || 0) }}%</p>
+              <p class="text-2xl font-bold text-yellow-600">{{ (paquete.descuento || 0) }}%</p>
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-green-900">Precio Final</p>
-              <p class="text-2xl font-bold text-green-600">{{ formatearPrecio((paquete?.precio_final || paquete?.precio)) }}</p>
+              <p class="text-2xl font-bold text-green-600">{{ formatearPrecio((paquete.precio_final || paquete.precio)) }}</p>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@
         <div class="text-center p-4 bg-gray-50 rounded-lg">
           <p class="text-sm text-gray-600 mb-1">Costo por sesión (precio base)</p>
           <p class="text-xl font-bold text-gray-900">
-            {{ formatearPrecio(((paquete?.precio || 0) / (paquete?.cantidad_sesiones || 1))) }}
+            {{ formatearPrecio(((paquete.precio || 0) / (paquete.cantidad_sesiones || 1))) }}
           </p>
         </div>
 
@@ -172,7 +172,7 @@
         <div class="text-center p-4 bg-green-50 rounded-lg">
           <p class="text-sm text-green-700 mb-1">Costo por sesión (precio final)</p>
           <p class="text-xl font-bold text-green-600">
-            {{ formatearPrecio(((paquete?.precio_final || paquete?.precio || 0) / (paquete?.cantidad_sesiones || 1))) }}
+            {{ formatearPrecio(((paquete.precio_final || paquete.precio || 0) / (paquete.cantidad_sesiones || 1))) }}
           </p>
         </div>
 
@@ -180,7 +180,7 @@
         <div *ngIf="(paquete.descuento || 0) > 0" class="text-center p-4 bg-blue-50 rounded-lg">
           <p class="text-sm text-blue-700 mb-1">Ahorro total</p>
           <p class="text-xl font-bold text-blue-600">
-            {{ formatearPrecio(((paquete?.precio || 0) - (paquete?.precio_final || paquete?.precio || 0))) }}
+            {{ formatearPrecio(((paquete.precio || 0) - (paquete.precio_final || paquete.precio || 0))) }}
           </p>
         </div>
 
@@ -197,12 +197,12 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <p class="text-sm font-medium text-gray-700">Fecha de Creación</p>
-          <p class="text-gray-900">{{ formatearFecha(paquete?.fecha_creacion) }}</p>
+          <p class="text-gray-900">{{ formatearFecha(paquete.fecha_creacion) }}</p>
         </div>
         
         <div>
           <p class="text-sm font-medium text-gray-700">Última Actualización</p>
-          <p class="text-gray-900">{{ formatearFecha(paquete?.fecha_actualizacion) }}</p>
+          <p class="text-gray-900">{{ formatearFecha(paquete.fecha_actualizacion) }}</p>
         </div>
       </div>
     </div>
@@ -305,7 +305,7 @@
         <!-- Cambiar estado -->
         <button 
           (click)="toggleStatus()"
-          [class]="(paquete?.status === 1) ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
+          [class]="(paquete.status === 1) ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
           class="text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
           <svg *ngIf="(paquete.status === 1)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636"></path>
@@ -313,7 +313,7 @@
           <svg *ngIf="(paquete.status === 0)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          {{ (paquete?.status === 1) ? 'Desactivar' : 'Activar' }}
+          {{ (paquete.status === 1) ? 'Desactivar' : 'Activar' }}
         </button>
       </div>
     </div>
