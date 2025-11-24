@@ -339,11 +339,527 @@
 
 <!-- Modales (mantener los existentes) -->
 <!-- Modal para Asignar Múltiples Rutinas -->
-<!-- (mantener todo el modal existente exactamente igual) -->
+<!-- Modal para Asignar Múltiples Rutinas -->
+<div *ngIf="showAsignarModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" (click)="closeAsignarModal()"></div>
 
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-white">
+              Asignar Rutinas Masivamente
+            </h3>
+            <p class="mt-1 text-sm text-red-100">
+              Asigna múltiples rutinas con diferentes duraciones a un grupo de usuarios
+            </p>
+          </div>
+          <button (click)="closeAsignarModal()" class="text-white hover:text-red-100">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="bg-white px-6 py-6 max-h-[70vh] overflow-y-auto">
+        
+        <!-- Error message -->
+        <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+          <div class="flex">
+            <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="ml-3 text-sm text-red-700">{{ error }}</p>
+          </div>
+        </div>
+
+        <!-- Sección 1: Rutinas a Asignar -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-md font-semibold text-gray-900">Rutinas a Asignar</h4>
+            <button
+              (click)="agregarNuevaAsignacion()"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            >
+              <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Agregar Rutina
+            </button>
+          </div>
+
+          <!-- Lista de rutinas a asignar -->
+          <div class="space-y-4">
+            <div *ngFor="let asignacion of asignacionesRutinas; let i = index; trackBy: trackByTempId" 
+                 class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              
+              <div class="flex justify-between items-start mb-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Rutina {{ i + 1 }}
+                </span>
+                <button
+                  *ngIf="asignacionesRutinas.length > 1"
+                  (click)="eliminarAsignacion(asignacion.id)"
+                  class="text-red-600 hover:text-red-800"
+                  title="Eliminar esta rutina"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Selección de rutina -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Rutina *
+                  </label>
+                  <select
+                    [(ngModel)]="asignacion.id_rutina"
+                    (change)="onRutinaChange(asignacion)"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                    required
+                  >
+                    <option [value]="0">Seleccionar rutina...</option>
+                    <option *ngFor="let rutina of rutinas; trackBy: trackByRutinaId" [value]="rutina.id">
+                      {{ rutina.nombre }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Fecha de inicio -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Inicio *
+                  </label>
+                  <input
+                    type="date"
+                    [(ngModel)]="asignacion.fecha_inicio"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                    required
+                  />
+                </div>
+
+                <!-- Duración -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Duración
+                  </label>
+                  <select
+                    [(ngModel)]="asignacion.duracion_dias"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                  >
+                    <option *ngFor="let duracion of duracionesDisponibles" [value]="duracion.dias">
+                      {{ duracion.label }} ({{ duracion.dias }} días)
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Fecha de fin calculada -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Fin (calculada)
+                  </label>
+                  <input
+                    type="text"
+                    [value]="calcularFechaFin(asignacion.fecha_inicio, asignacion.duracion_dias) | date:'dd/MM/yyyy'"
+                    class="block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600"
+                    readonly
+                  />
+                </div>
+
+                <!-- Notas -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Notas para esta rutina
+                  </label>
+                  <textarea
+                    [(ngModel)]="asignacion.notas"
+                    rows="2"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                    placeholder="Notas específicas para esta rutina..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del programa -->
+          <div *ngIf="asignacionesRutinas.length > 0" class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h5 class="text-sm font-medium text-blue-900 mb-2">Resumen del Programa</h5>
+            <div class="text-sm text-blue-700 space-y-1">
+              <p><strong>Total de rutinas:</strong> {{ asignacionesRutinas.length }}</p>
+              <p><strong>Duración total estimada:</strong> {{ getDuracionTotalPrograma() }} días</p>
+              <p *ngIf="getResumenAsignaciones()" class="text-xs mt-2">{{ getResumenAsignaciones() }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 2: Selección de Usuarios -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-md font-semibold text-gray-900">
+              Usuarios a Asignar ({{ usuarios_seleccionados.length }} seleccionados)
+            </h4>
+            <div class="space-x-2">
+              <button
+                (click)="selectAllUsuarios()"
+                class="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Seleccionar todos
+              </button>
+              <button
+                (click)="clearAllUsuarios()"
+                class="text-sm text-red-600 hover:text-red-800"
+              >
+                Limpiar selección
+              </button>
+            </div>
+          </div>
+
+          <!-- Grid de usuarios -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3">
+            <label *ngFor="let usuario of usuarios; trackBy: trackByUserId" 
+                   class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+              <input
+                type="checkbox"
+                [checked]="isUsuarioSelected(usuario.id!)"
+                (change)="toggleUsuario(usuario.id!)"
+                class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              />
+              <span class="ml-2 text-sm text-gray-700">{{ usuario.full_name || usuario.username }}</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-t border-gray-200">
+        <div class="text-sm text-gray-600">
+          <span *ngIf="asignacionesRutinas.length > 0 && usuarios_seleccionados.length > 0">
+            Se asignarán {{ asignacionesRutinas.length }} rutinas a {{ usuarios_seleccionados.length }} usuarios
+          </span>
+        </div>
+        <div class="space-x-3">
+          <button
+            (click)="closeAsignarModal()"
+            type="button"
+            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            (click)="asignarRutinas()"
+            [disabled]="loading || asignacionesRutinas.length === 0 || usuarios_seleccionados.length === 0"
+            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+          >
+            <svg *ngIf="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ loading ? 'Asignando...' : 'Asignar Rutinas' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 <!-- Modal para Ver Seguimiento -->
-<!-- (mantener todo el modal existente exactamente igual) -->
+<!-- Modal para Ver Seguimiento -->
+<div *ngIf="showVerModal" class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeVerModal()"></div>
 
+    <!-- Modal Panel -->
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+      
+      <!-- Modal Header -->
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              Seguimiento: {{ selectedAsignacion?.rutina_nombre }}
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Progreso individual de cada usuario asignado
+                <span *ngIf="selectedAsignacion && !selectedAsignacion.es_activa" class="text-red-500 font-medium ml-2">
+                  (Asignación vencida)
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="bg-white px-4 pb-4 sm:px-6">
+        
+        <!-- Información de la asignación -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6"
+             [class.bg-red-50]="selectedAsignacion && !selectedAsignacion.es_activa">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="font-medium text-gray-700">Período:</span>
+              <div class="text-gray-900">
+                {{ formatDate(selectedAsignacion?.fecha_inicio_programada || '') }} - 
+                {{ formatDate(selectedAsignacion?.fecha_fin_programada || '') }}
+              </div>
+              <div *ngIf="selectedAsignacion" class="text-xs mt-1">
+                <span *ngIf="selectedAsignacion.es_activa && getDiasRestantes(selectedAsignacion.fecha_fin_programada) > 0" 
+                      class="text-green-600">
+                  {{ getDiasRestantes(selectedAsignacion.fecha_fin_programada) }} días restantes
+                </span>
+                <span *ngIf="selectedAsignacion.es_activa && getDiasRestantes(selectedAsignacion.fecha_fin_programada) === 0" 
+                      class="text-yellow-600">
+                  Vence hoy
+                </span>
+                <span *ngIf="!selectedAsignacion.es_activa" 
+                      class="text-red-600">
+                  Asignación vencida
+                </span>
+              </div>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Total usuarios:</span>
+              <div class="text-gray-900">{{ selectedAsignacion?.usuarios_count }}</div>
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Asignado por:</span>
+              <div class="text-gray-900">{{ selectedAsignacion?.asignado_por_nombre }}</div>
+            </div>
+          </div>
+          
+          <!-- Notas de la asignación -->
+          <div *ngIf="selectedAsignacion?.notas_asignacion" class="mt-4 pt-4 border-t border-gray-200">
+            <span class="font-medium text-gray-700">Notas:</span>
+          </div>
+        </div>
+
+        <!-- Tabla de seguimiento individual -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Usuario
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Progreso
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fechas Reales
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Notas
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let seguimiento of seguimientoDetalle" class="hover:bg-gray-50">
+                
+                <!-- Usuario -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <span class="text-red-600 font-medium text-sm">
+                        {{ seguimiento.full_name?.charAt(0)?.toUpperCase() || 'U' }}
+                      </span>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{ seguimiento.full_name }}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        {{ seguimiento.username }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Progreso -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">
+                          {{ seguimiento.progreso }}%
+                        </span>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          class="h-2 rounded-full transition-all duration-300"
+                          [ngClass]="{
+                            'bg-red-600': seguimiento.progreso < 25,
+                            'bg-yellow-500': seguimiento.progreso >= 25 && seguimiento.progreso < 50,
+                            'bg-blue-500': seguimiento.progreso >= 50 && seguimiento.progreso < 75,
+                            'bg-green-500': seguimiento.progreso >= 75
+                          }"
+                          [style.width.%]="seguimiento.progreso"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="ml-3" *ngIf="canAssignRoutines()">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        [value]="seguimiento.progreso"
+                        (change)="actualizarProgreso(seguimiento.seguimiento_id, $event)"
+                        class="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="0-100"
+                      />
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Estado -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span 
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="{
+                      'bg-gray-100 text-gray-800': seguimiento.estado_individual === 'pendiente',
+                      'bg-yellow-100 text-yellow-800': seguimiento.estado_individual === 'en_progreso',
+                      'bg-green-100 text-green-800': seguimiento.estado_individual === 'completada',
+                      'bg-red-100 text-red-800': seguimiento.estado_individual === 'abandonada'
+                    }"
+                  >
+                    <i 
+                      class="mr-1"
+                      [ngClass]="{
+                        'fas fa-clock': seguimiento.estado_individual === 'pendiente',
+                        'fas fa-play-circle': seguimiento.estado_individual === 'en_progreso',
+                        'fas fa-check-circle': seguimiento.estado_individual === 'completada',
+                        'fas fa-times-circle': seguimiento.estado_individual === 'abandonada'
+                      }"
+                    ></i>
+                    {{ seguimiento.estado_individual }}
+                  </span>
+                </td>
+
+                <!-- Fechas Reales -->
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <div *ngIf="seguimiento.fecha_inicio_real || seguimiento.fecha_fin_real; else noFechas">
+                    <div *ngIf="seguimiento.fecha_inicio_real" class="text-green-600">
+                      <i class="fas fa-play mr-1"></i>
+                      {{ formatDate(seguimiento.fecha_inicio_real) }}
+                    </div>
+                    <div *ngIf="seguimiento.fecha_fin_real" class="text-blue-600 mt-1">
+                      <i class="fas fa-flag-checkered mr-1"></i>
+                      {{ formatDate(seguimiento.fecha_fin_real) }}
+                    </div>
+                  </div>
+                  <ng-template #noFechas>
+                    <span class="text-gray-400 text-xs">Sin iniciar</span>
+                  </ng-template>
+                </td>
+
+                <!-- Notas -->
+                <td class="px-6 py-4">
+                  <div class="max-w-xs">
+                    <p class="text-sm text-gray-900 truncate" [title]="seguimiento.notas_individuales || ''">
+                      {{ seguimiento.notas_individuales || '-' }}
+                    </p>
+                  </div>
+                </td>
+
+                <!-- Acciones -->
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    *ngIf="canAssignRoutines()"
+                    (click)="editarNotasIndividuales(seguimiento)"
+                    class="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-50"
+                    title="Editar notas"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          <div *ngIf="seguimientoDetalle.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay datos de seguimiento</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              No se encontró información de seguimiento para esta asignación.
+            </p>
+          </div>
+        </div>
+
+        <!-- Estadísticas resumidas -->
+        <div *ngIf="seguimientoDetalle.length > 0" class="mt-6 bg-gray-50 rounded-lg p-4">
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Resumen del Progreso</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div class="text-2xl font-bold text-gray-900">
+                {{ getEstadisticasProgreso().pendientes }}
+              </div>
+              <div class="text-xs text-gray-500">Pendientes</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-yellow-600">
+                {{ getEstadisticasProgreso().enProgreso }}
+              </div>
+              <div class="text-xs text-gray-500">En Progreso</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-green-600">
+                {{ getEstadisticasProgreso().completadas }}
+              </div>
+              <div class="text-xs text-gray-500">Completadas</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-blue-600">
+                {{ getEstadisticasProgreso().promedioProgreso }}%
+              </div>
+              <div class="text-xs text-gray-500">Progreso Promedio</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button
+          type="button"
+          (click)="closeVerModal()"
+          class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Floating Action Button para móvil -->
 <button
   *ngIf="!showAsignarModal && !showVerModal && canAssignRoutines()"
