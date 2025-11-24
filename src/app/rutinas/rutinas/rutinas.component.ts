@@ -503,8 +503,16 @@ export class RutinasComponent implements OnInit {
 
   // Formatear rutina para el modal de vista
  // REEMPLAZA COMPLETAMENTE el método getFormattedRutina en rutinas.component.ts con este código:
+// MÉTODO getFormattedRutina CORREGIDO
+// Para reemplazar en rutinas.component.ts
+// 
+// CAMBIOS REALIZADOS:
+// 1. ✅ Eliminado "Creado por: Administrador del Sistema" del footer
+// 2. ✅ Eliminado "ID Rutina" del footer
+// 3. ✅ Corregido bug: Ya NO muestra RPE cuando existe cals
+
 getFormattedRutina(rutina: Rutina | null): string {
-  console.log('🎨 Formateando rutina con NUEVO FORMATO (Admin):', rutina?.nombre); // Debug
+  console.log('🎨 Formateando rutina con NUEVO FORMATO (Admin):', rutina?.nombre);
   
   if (!rutina) return '';
 
@@ -533,7 +541,7 @@ getFormattedRutina(rutina: Rutina | null): string {
   texto += '║' + `💪 PLAN DE ENTRENAMIENTO`.padEnd(78) + '║\n';
   texto += '╚' + '═'.repeat(78) + '╝\n\n';
 
-  // Iconos para cada sección - CORREGIDO CON TIPADO ADECUADO
+  // Iconos para cada sección
   const iconosSecciones: { [key: string]: string } = {
     'warm_upg': '🌡️',
     'warm_up': '🔥',
@@ -556,7 +564,7 @@ getFormattedRutina(rutina: Rutina | null): string {
     if (seccionData && seccionData.ejercicios && seccionData.ejercicios.length > 0 && seccionInfo) {
       seccionesEncontradas++;
       
-      console.log(`📋 Procesando sección: ${seccionInfo.nombre}`); // Debug
+      console.log(`📋 Procesando sección: ${seccionInfo.nombre}`);
       
       // Header de sección con icono
       const icono = iconosSecciones[sectionKey] || '📋';
@@ -569,7 +577,7 @@ getFormattedRutina(rutina: Rutina | null): string {
         texto += `📝 ${seccionData.descripcion}\n`;
       }
       
-      // Información adicional de la sección con iconos - CORREGIDAS LAS PROPIEDADES
+      // Información adicional de la sección con iconos
       const infoAdicional = [];
       if (seccionData.tiempo_total) infoAdicional.push(`⏱️  Tiempo: ${seccionData.tiempo_total}`);
       if (seccionData.series) infoAdicional.push(`🔄 Series: ${seccionData.series}`);
@@ -593,7 +601,7 @@ getFormattedRutina(rutina: Rutina | null): string {
         // Detalles del ejercicio con iconos
         const detalles = [];
         if (ejercicio.repeticiones) detalles.push(`🔢 ${ejercicio.repeticiones} reps`);
-        if (ejercicio.cals) detalles.push(`🔢 ${ejercicio.cals} cals`);
+        if (ejercicio.cals) detalles.push(`🔥 ${ejercicio.cals} cals`);
         if (ejercicio.series) detalles.push(`🔄 ${ejercicio.series} series`);
         if (ejercicio.peso) detalles.push(`⚖️  ${ejercicio.peso}`);
         if (ejercicio.distancia) detalles.push(`📏 ${ejercicio.distancia}`);
@@ -604,14 +612,11 @@ getFormattedRutina(rutina: Rutina | null): string {
           texto += `    └─ ${detalles.join(' • ')}\n`;
         }
         
-        // RPE si existe
-        if (ejercicio.rpe) {
+        // ⚠️ CORRECCIÓN DEL BUG: RPE O CALS, NO AMBOS
+        // Solo mostrar RPE si NO existe cals
+        if (ejercicio.rpe && !ejercicio.cals) {
           texto += `    💪 RPE: ${ejercicio.rpe}/10\n`;
-        } if (ejercicio.cals) {
-          texto += `    💪 RPE: ${ejercicio.cals}/10\n`;
         }
-        
-        
         
         // Descanso si existe
         if (ejercicio.descanso) {
@@ -643,7 +648,7 @@ getFormattedRutina(rutina: Rutina | null): string {
 
   // Si no se encontraron secciones con ejercicios
   if (seccionesEncontradas === 0) {
-    console.log('⚠️ No se encontraron secciones con ejercicios'); // Debug
+    console.log('⚠️ No se encontraron secciones con ejercicios');
     texto += `┌${'─'.repeat(76)}┐\n`;
     texto += `│ ℹ️  RUTINA EN DESARROLLO${' '.repeat(51)}│\n`;
     texto += `└${'─'.repeat(76)}┘\n`;
@@ -659,7 +664,7 @@ getFormattedRutina(rutina: Rutina | null): string {
   }
 
   // =====================================
-  // FOOTER CON RESUMEN E INFORMACIÓN DEL SISTEMA
+  // FOOTER CON RESUMEN - SIN ID NI CREADOR
   // =====================================
   texto += '╔' + '═'.repeat(78) + '╗\n';
   texto += '║' + `📱 rehabiMovement - Sistema de Entrenamiento`.padEnd(78) + '║\n';
@@ -674,14 +679,18 @@ getFormattedRutina(rutina: Rutina | null): string {
   }
   
   texto += '║' + `📅 Generado: ${this.formatDate(new Date().toISOString())}`.padEnd(78) + '║\n';
-  texto += '║' + `🆔 ID Rutina: ${rutina.id || 'N/A'}`.padEnd(78) + '║\n';
-  texto += '║' + `👤 Creado por: Administrador del Sistema`.padEnd(78) + '║\n';
+  
+  // ✅ ELIMINADAS LAS SIGUIENTES LÍNEAS:
+  // texto += '║' + `🆔 ID Rutina: ${rutina.id || 'N/A'}`.padEnd(78) + '║\n';
+  // texto += '║' + `👤 Creado por: Administrador del Sistema`.padEnd(78) + '║\n';
   
   texto += '╚' + '═'.repeat(78) + '╝\n';
 
-  console.log('✅ Nuevo formato aplicado exitosamente!'); // Debug
+  console.log('✅ Nuevo formato aplicado exitosamente!');
   return texto;
 }
+
+
 
 // También necesitarás agregar este método helper si no lo tienes:
 private formatDate(dateString: string): string {

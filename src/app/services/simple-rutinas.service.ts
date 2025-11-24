@@ -13,6 +13,10 @@ export class SimpleRutinasService {
     private authService: AuthService
   ) {}
 
+  /**
+   * Obtiene las rutinas del usuario actual
+   * Si es administrador (id_perfil = 1), obtiene TODAS las rutinas de TODOS los usuarios
+   */
   async getRutinasUsuarioSimple(): Promise<any[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
@@ -20,7 +24,92 @@ export class SimpleRutinasService {
         throw new Error('Usuario no autenticado');
       }
 
-      // Método directo usando Supabase
+      // Verificar si el usuario es administrador
+      const esAdmin = currentUser.id_perfil === 1;
+
+      console.log(`📋 Cargando rutinas. Usuario: ${currentUser.full_name}, Es Admin: ${esAdmin}`);
+
+      let query = this.supabaseService.client
+        .from('rutina_seguimiento_individual')
+        .select(`
+          id,
+          id_asignacion_masiva,
+          id_profile,
+          id_rutina,
+          progreso,
+          estado_individual,
+          fecha_inicio_real,
+          fecha_fin_real,
+          notas_individuales,
+          rutina_asignaciones_masivas!inner(
+            fecha_inicio,
+            fecha_fin,
+            estado,
+            notas,
+            status
+          ),
+          rutinas!inner(
+            id,
+            nombre,
+            descripcion,
+            tipo,
+            nivel,
+            duracion_estimada,
+            warm_up,
+            met_con,
+            strength,
+            core,
+            extra,
+            tags,
+            status
+          ),
+          profiles!inner(
+            id,
+            username,
+            full_name
+          )
+        `);
+
+      // Si NO es administrador, filtrar solo sus rutinas
+      if (!esAdmin) {
+        query = query.eq('id_profile', currentUser.id);
+      }
+
+      // Aplicar filtros comunes
+      const { data: seguimientos, error } = await query
+        .eq('rutina_asignaciones_masivas.status', 1)
+        .eq('rutinas.status', 1)
+        .order('id', { ascending: false });
+
+      if (error) throw error;
+
+      console.log(`✅ Rutinas cargadas: ${seguimientos?.length || 0}`);
+
+      return seguimientos || [];
+    } catch (error) {
+      console.error('❌ Error obteniendo rutinas del usuario:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene todas las rutinas de un usuario específico
+   * Solo para administradores
+   */
+  async getRutinasPorUsuario(usuarioId: number): Promise<any[]> {
+    try {
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser?.id) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      // Verificar si el usuario es administrador
+      const esAdmin = currentUser.id_perfil === 1;
+      if (!esAdmin) {
+        console.warn('⚠️ Solo administradores pueden consultar rutinas de otros usuarios');
+        return [];
+      }
+
       const { data: seguimientos, error } = await this.supabaseService.client
         .from('rutina_seguimiento_individual')
         .select(`
@@ -54,9 +143,14 @@ export class SimpleRutinasService {
             extra,
             tags,
             status
+          ),
+          profiles!inner(
+            id,
+            username,
+            full_name
           )
         `)
-        .eq('id_profile', currentUser.id)
+        .eq('id_profile', usuarioId)
         .eq('rutina_asignaciones_masivas.status', 1)
         .eq('rutinas.status', 1)
         .order('id', { ascending: false });
@@ -65,7 +159,7 @@ export class SimpleRutinasService {
 
       return seguimientos || [];
     } catch (error) {
-      console.error('Error obteniendo rutinas del usuario:', error);
+      console.error('❌ Error obteniendo rutinas del usuario específico:', error);
       return [];
     }
   }
@@ -131,5 +225,13 @@ export class SimpleRutinasService {
     const diasRestantes = Math.ceil((fin.getTime() - hoy.getTime()) / (1000 * 3600 * 24));
 
     return { estado, diasRestantes };
+  }
+
+  /**
+   * Verifica si el usuario actual es administrador
+   */
+  esAdministrador(): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    return currentUser?.id_perfil === 1;
   }
 }
