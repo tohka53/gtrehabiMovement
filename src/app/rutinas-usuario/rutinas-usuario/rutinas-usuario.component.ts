@@ -91,8 +91,9 @@ export class RutinasUsuarioComponent implements OnInit {
   selectedAsignacion: AsignacionCompleta | null = null;
   seguimientoDetalle: any[] = [];
 
-  // NUEVO: Control de vistas
-  vistaActiva: 'tabla' | 'calendario' = 'tabla';
+  // NUEVO: Control de vistas — por defecto el calendario (lo pidió el admin
+  // para tener la foto del mes apenas entra a la pantalla).
+  vistaActiva: 'tabla' | 'calendario' = 'calendario';
 
   // NUEVA FUNCIONALIDAD: Formulario de múltiples asignaciones
   asignacionesRutinas: AsignacionRutina[] = [];
@@ -285,8 +286,13 @@ export class RutinasUsuarioComponent implements OnInit {
 
   async procesarAsignacionesVencidas(): Promise<void> {
     try {
+      // FIX timezone: componentes locales en vez de toISOString,
+      // que en GMT-6 puede devolver el día siguiente por la noche.
       const hoy = new Date();
-      const fechaHoy = hoy.toISOString().split('T')[0];
+      const y = hoy.getFullYear();
+      const m = (hoy.getMonth() + 1).toString().padStart(2, '0');
+      const d = hoy.getDate().toString().padStart(2, '0');
+      const fechaHoy = `${y}-${m}-${d}`;
 
       const { data: asignacionesVencidas, error } = await this.supabaseService.client
         .from('rutina_asignaciones_masivas')
@@ -364,11 +370,20 @@ export class RutinasUsuarioComponent implements OnInit {
     asignacion.rutina_nombre = rutina?.nombre || '';
   }
 
+  // FIX timezone: parsear Y/M/D directamente y formatear con componentes locales,
+  // así "2026-05-05" + 30 días siempre da el día correcto en GMT-6.
   calcularFechaFin(fechaInicio: string, duracionDias: number): string {
     if (!fechaInicio) return '';
-    const fecha = new Date(fechaInicio);
+    const [yStr, mStr, dStr] = fechaInicio.split('-');
+    const y = Number(yStr);
+    const m = Number(mStr) - 1;
+    const d = Number(dStr);
+    const fecha = new Date(y, m, d);
     fecha.setDate(fecha.getDate() + duracionDias);
-    return fecha.toISOString().split('T')[0];
+    const yy = fecha.getFullYear();
+    const mm = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const dd = fecha.getDate().toString().padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
   }
 
   toggleUsuario(userId: number): void {
@@ -770,10 +785,15 @@ export class RutinasUsuarioComponent implements OnInit {
     });
   }
 
+  // FIX timezone: usamos componentes locales en vez de toISOString,
+  // así "mañana" es realmente mañana en GMT-6 y no se desfasa.
   getTomorrowDate(): string {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+    const y = tomorrow.getFullYear();
+    const m = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
+    const d = tomorrow.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   getDiasRestantes(fechaFin: string): number {

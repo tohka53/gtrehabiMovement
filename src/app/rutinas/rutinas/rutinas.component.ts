@@ -106,9 +106,14 @@ export class RutinasComponent implements OnInit {
       const data = await this.supabaseService.getData('rutinas');
       this.rutinas = data || [];
 
-      // Ordenar alfabéticamente las rutinas por nombre
-      this.rutinas = this.rutinas.sort((a, b) => {
-        return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
+      // Ordenar de más nueva a más vieja (por created_at desc).
+      // Si no hay created_at en alguna fila, usamos el id como fallback
+      // — los ids autoincrementales también son cronológicos.
+      this.rutinas = this.rutinas.sort((a: any, b: any) => {
+        const fechaA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const fechaB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (fechaA !== fechaB) return fechaB - fechaA;
+        return (b.id || 0) - (a.id || 0);
       });
 
       this.filteredRutinas = [...this.rutinas];
@@ -156,9 +161,12 @@ export class RutinasComponent implements OnInit {
       );
     }
 
-    // Ordenamiento alfabético por nombre
-    filtered = filtered.sort((a, b) => {
-      return a.nombre.toLowerCase().localeCompare(b.nombre.toLowerCase());
+    // Ordenar de más nueva a más vieja (por created_at desc, fallback id desc).
+    filtered = filtered.sort((a: any, b: any) => {
+      const fechaA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const fechaB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      if (fechaA !== fechaB) return fechaB - fechaA;
+      return (b.id || 0) - (a.id || 0);
     });
 
     this.filteredRutinas = filtered;

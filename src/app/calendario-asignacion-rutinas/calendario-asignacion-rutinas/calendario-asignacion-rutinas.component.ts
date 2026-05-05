@@ -77,7 +77,12 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
   // Filtros del calendario
   filtroEstado = 'todas'; // 'todas', 'activas', 'completadas', 'vencidas'
   filtroRutina = 'todas';
-  mostrarSoloIniciosFines = false; // Toggle para mostrar solo inicios/fines vs todo el período
+  // Por defecto mostramos SOLO el día de inicio. Si el admin quiere ver también
+  // los días intermedios y el día final, activa el toggle.
+  mostrarPeriodoCompleto = false;
+  // Alias retro-compatible: el HTML antiguo lo usaba como `mostrarSoloIniciosFines`.
+  // (Cuando es true mostramos sólo inicios/fines; cuando es false, sólo inicios.)
+  mostrarSoloIniciosFines = false;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -149,46 +154,52 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
   // LÓGICA DE ASIGNACIONES POR DÍA
   // =====================================
 
+  // FIX bug "rutina se repite todos los días":
+  // Antes la lógica era `fecha >= fechaInicio && fecha <= fechaFin` y por defecto
+  // mostraba todos los días intermedios → la misma rutina se duplicaba en cada
+  // celda del rango. Ahora por defecto mostramos SOLO el día de inicio.
+  // El admin puede activar mostrarPeriodoCompleto si quiere ver el rango entero.
+  // También usamos comparación de strings YYYY-MM-DD (sin new Date) para
+  // evitar el shift de día por zona horaria en GMT-6.
   getAsignacionesDelDia(fecha: Date): AsignacionCalendario[] {
     const asignacionesDelDia: AsignacionCalendario[] = [];
     const fechaStr = this.formatDateForComparison(fecha);
-    
+
     this.asignaciones.forEach(asignacion => {
       if (!this.cumpleFiltros(asignacion)) return;
 
-      const fechaInicio = new Date(asignacion.fecha_inicio_programada);
-      const fechaFin = new Date(asignacion.fecha_fin_programada);
-      const fechaInicioStr = this.formatDateForComparison(fechaInicio);
-      const fechaFinStr = this.formatDateForComparison(fechaFin);
+      const fechaInicioStr = this.normalizarFecha(asignacion.fecha_inicio_programada);
+      const fechaFinStr = this.normalizarFecha(asignacion.fecha_fin_programada);
+      if (!fechaInicioStr || !fechaFinStr) return;
 
-      // Verificar si la fecha está en el rango de la asignación
-      const enRango = fecha >= fechaInicio && fecha <= fechaFin;
+      const esInicio = fechaStr === fechaInicioStr;
+      const esFin = fechaStr === fechaFinStr;
+      const enRango = fechaStr >= fechaInicioStr && fechaStr <= fechaFinStr;
 
-      if (!enRango) return;
+      let tipoEvento: 'inicio' | 'fin' | 'en_curso';
+      if (esInicio) tipoEvento = 'inicio';
+      else if (esFin) tipoEvento = 'fin';
+      else tipoEvento = 'en_curso';
 
-      let tipoEvento: 'inicio' | 'fin' | 'en_curso' = 'en_curso';
-      
-      // Determinar tipo de evento
-      if (fechaStr === fechaInicioStr) {
-        tipoEvento = 'inicio';
-      } else if (fechaStr === fechaFinStr) {
-        tipoEvento = 'fin';
+      // Modo por defecto: SÓLO el día de inicio
+      if (!this.mostrarPeriodoCompleto && !this.mostrarSoloIniciosFines) {
+        if (!esInicio) return;
+      }
+      // Modo "solo inicios y fines"
+      else if (this.mostrarSoloIniciosFines && !this.mostrarPeriodoCompleto) {
+        if (!esInicio && !esFin) return;
+      }
+      // Modo "período completo": cualquier día dentro del rango
+      else {
+        if (!enRango) return;
       }
 
-      // Si solo queremos mostrar inicios y fines, filtrar 'en_curso'
-      if (this.mostrarSoloIniciosFines && tipoEvento === 'en_curso') {
-        return;
-      }
-
-      // Calcular días transcurridos
-      const diffTime = fecha.getTime() - fechaInicio.getTime();
-      const diasTranscurridos = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      // Calcular duración total
-      const duracionTotal = Math.ceil((fechaFin.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
-      // Calcular progreso estimado basado en días
-      const progresoEstimado = Math.min(100, Math.max(0, (diasTranscurridos / duracionTotal) * 100));
+      // Cálculos de progreso/días — sólo para tooltips, no afectan filtrado
+      const diasTranscurridos = this.diasEntre(fechaInicioStr, fechaStr);
+      const duracionTotal = this.diasEntre(fechaInicioStr, fechaFinStr) + 1;
+      const progresoEstimado = duracionTotal > 0
+        ? Math.min(100, Math.max(0, (diasTranscurridos / duracionTotal) * 100))
+        : 0;
 
       asignacionesDelDia.push({
         asignacion,
@@ -199,10 +210,29 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
     });
 
     return asignacionesDelDia.sort((a, b) => {
-      // Ordenar por tipo: inicio primero, luego en_curso, luego fin
+      // inicio primero, luego en_curso, luego fin
       const orden = { inicio: 1, en_curso: 2, fin: 3 };
       return orden[a.tipo] - orden[b.tipo];
     });
+  }
+
+  // Normaliza la fecha venga como string ("2026-04-27" o "2026-04-27T00:00:00+00:00")
+  // o como Date — siempre devuelve YYYY-MM-DD sin pasar por new Date(string),
+  // que en GMT-6 desplaza al día anterior.
+  private normalizarFecha(valor: string | Date | null | undefined): string {
+    if (!valor) return '';
+    if (valor instanceof Date) return this.formatDateForComparison(valor);
+    return String(valor).substring(0, 10);
+  }
+
+  // Días enteros entre dos fechas YYYY-MM-DD (sólo para tooltips)
+  private diasEntre(desde: string, hasta: string): number {
+    if (!desde || !hasta) return 0;
+    const [y1, m1, d1] = desde.split('-').map(Number);
+    const [y2, m2, d2] = hasta.split('-').map(Number);
+    const a = new Date(y1, m1 - 1, d1).getTime();
+    const b = new Date(y2, m2 - 1, d2).getTime();
+    return Math.round((b - a) / (1000 * 60 * 60 * 24));
   }
 
   cumpleFiltros(asignacion: AsignacionCompleta): boolean {
@@ -408,9 +438,26 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
     this.generarCalendario();
   }
 
+  // Cicla entre tres modos: solo-inicios → inicios+fines → período completo → solo-inicios
   toggleVistaCompleta(): void {
-    this.mostrarSoloIniciosFines = !this.mostrarSoloIniciosFines;
+    if (!this.mostrarSoloIniciosFines && !this.mostrarPeriodoCompleto) {
+      this.mostrarSoloIniciosFines = true;
+      this.mostrarPeriodoCompleto = false;
+    } else if (this.mostrarSoloIniciosFines && !this.mostrarPeriodoCompleto) {
+      this.mostrarSoloIniciosFines = false;
+      this.mostrarPeriodoCompleto = true;
+    } else {
+      this.mostrarSoloIniciosFines = false;
+      this.mostrarPeriodoCompleto = false;
+    }
     this.generarCalendario();
+  }
+
+  // Etiqueta del modo actual para el botón del toggle
+  get vistaCompletaLabel(): string {
+    if (this.mostrarPeriodoCompleto) return 'Período completo';
+    if (this.mostrarSoloIniciosFines) return 'Inicios y fines';
+    return 'Sólo inicios';
   }
 
   // Track by functions para optimización
