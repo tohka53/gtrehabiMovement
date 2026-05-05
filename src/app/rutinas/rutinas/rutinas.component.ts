@@ -1,5 +1,6 @@
 // src/app/rutinas/rutinas/rutinas.component.ts
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
 import { AuthService } from '../../services/auth.service';
 import { 
@@ -80,9 +81,15 @@ export class RutinasComponent implements OnInit {
   // Control de secciones activas en el formulario
   seccionesActivas: Set<string> = new Set();
 
+  // Flag que activa el flujo "Crear y asignar": después de que saveRutina()
+  // termine OK en modo create, navegamos a /rutinas-usuario y abrimos el
+  // modal de asignación con la rutina recién creada precargada.
+  private asignarDespuesDeCrear = false;
+
   constructor(
     private supabaseService: SupabaseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -293,7 +300,9 @@ export class RutinasComponent implements OnInit {
         }
       });
 
-      if (this.modalMode === 'create') {
+      const eraCreacion = this.modalMode === 'create';
+
+      if (eraCreacion) {
         console.log('Creando rutina:', dataToSave);
         await this.supabaseService.insertData('rutinas', dataToSave);
       } else {
@@ -304,10 +313,37 @@ export class RutinasComponent implements OnInit {
 
       await this.loadRutinas();
       this.closeModal();
+
+      // Flujo "Crear y asignar": cuando se acaba de crear una rutina nueva
+      // y el usuario apretó el botón con esa intención, navegamos a la
+      // pantalla de asignaciones con la rutina recién creada en query params.
+      // Como loadRutinas() ya ordenó por created_at desc, this.rutinas[0] es
+      // la más reciente — la que acabamos de insertar.
+      if (eraCreacion && this.asignarDespuesDeCrear) {
+        this.asignarDespuesDeCrear = false;
+        const recienCreada = this.rutinas[0];
+        if (recienCreada?.id != null) {
+          this.router.navigate(['/rutinas-usuario'], {
+            queryParams: {
+              asignarRutinaId: recienCreada.id,
+              ts: Date.now() // bust cache para que ngOnInit reaccione si ya estaba allí
+            }
+          });
+        } else {
+          this.router.navigate(['/rutinas-usuario']);
+        }
+      }
     } catch (error) {
       console.error('Error guardando rutina:', error);
       this.error = 'Error al guardar la rutina';
+      this.asignarDespuesDeCrear = false;
     }
+  }
+
+  // Botón "Crear y asignar" del modal: prende el flag y reusa saveRutina().
+  async saveAndAssignRutina(): Promise<void> {
+    this.asignarDespuesDeCrear = true;
+    await this.saveRutina();
   }
 
   async deleteRutina(rutina: Rutina): Promise<void> {

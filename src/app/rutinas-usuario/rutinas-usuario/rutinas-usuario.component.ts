@@ -1,5 +1,6 @@
 // src/app/rutinas-usuario/rutinas-usuario.component.ts (Actualizado con vista de calendario)
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
 import { AuthService } from '../../services/auth.service';
 import { Profile } from '../../interfaces/user.interfaces';
@@ -119,12 +120,47 @@ export class RutinasUsuarioComponent implements OnInit {
 
   constructor(
     private supabaseService: SupabaseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
     await this.procesarAsignacionesVencidas();
+
+    // Flujo "Crear y asignar" desde la pantalla de Rutinas:
+    // si llegamos con ?asignarRutinaId=ID, abrimos el modal de asignación
+    // y precargamos esa rutina en la primera fila del formulario.
+    // Suscribimos al observable porque queryParams puede cambiar sin
+    // remontar el componente (mismo path con distinto query).
+    this.route.queryParamMap.subscribe(params => {
+      const idStr = params.get('asignarRutinaId');
+      if (!idStr) return;
+      const id = Number(idStr);
+      if (!Number.isFinite(id)) return;
+      this.abrirAsignarConRutinaPrecargada(id);
+      // Limpiamos los queryParams para que un refresh no vuelva a abrir el modal.
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    });
+  }
+
+  // Abre el modal de asignación con la rutina indicada ya seleccionada en la
+  // primera fila. Si las rutinas todavía no se cargaron, no encuentra match
+  // y deja el campo vacío — pero como en ngOnInit ya esperamos a loadInitialData,
+  // las rutinas ya están en memoria cuando esto corre.
+  private abrirAsignarConRutinaPrecargada(rutinaId: number): void {
+    this.openAsignarModal();
+    if (this.asignacionesRutinas.length === 0) {
+      this.agregarNuevaAsignacion();
+    }
+    const primera = this.asignacionesRutinas[0];
+    primera.id_rutina = rutinaId;
+    this.onRutinaChange(primera);
   }
 
   // ==============================================

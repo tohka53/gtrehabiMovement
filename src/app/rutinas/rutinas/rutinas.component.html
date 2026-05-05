@@ -722,6 +722,22 @@
       >
         Cancelar
       </button>
+
+      <!-- "Crear y asignar": sólo visible al crear (no al editar) -->
+      <button
+        *ngIf="modalMode === 'create'"
+        type="button"
+        (click)="saveAndAssignRutina()"
+        [disabled]="loading"
+        class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-red-200 bg-red-50 text-sm font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        title="Guarda la rutina y abre el modal de asignación con esta rutina precargada"
+      >
+        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        </svg>
+        Crear y asignar
+      </button>
+
       <button
         type="button"
         (click)="saveRutina()"
