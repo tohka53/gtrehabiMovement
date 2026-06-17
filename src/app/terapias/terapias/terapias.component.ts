@@ -40,7 +40,9 @@ export class TerapiasComponent implements OnInit {
   // Formulario para terapia - NIVEL COMO STRING LIBRE
   terapiaForm: Terapia = {
     nombre: '',
+    observaciones_generales: '',
     descripcion: '',
+    descripcion_detallada: '',
     tipo: 'fisica',
     area_especializacion: '',
     nivel: 'Principiante', // Ahora es string libre
@@ -330,7 +332,9 @@ export class TerapiasComponent implements OnInit {
   resetForm(): void {
     this.terapiaForm = {
       nombre: '',
+      observaciones_generales: '',
       descripcion: '',
+      descripcion_detallada: '',
       tipo: 'fisica',
       area_especializacion: '',
       nivel: 'Principiante', // Valor por defecto

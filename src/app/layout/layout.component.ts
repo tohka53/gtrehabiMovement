@@ -378,11 +378,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Manejar navegación - cerrar menú móvil al navegar
+   * Manejar navegación - contraer el menú al seleccionar una opción
    */
   handleNavigation(): void {
-    if (this.isMobile() && this.isMobileMenuOpen) {
+    if (this.isMobile()) {
+      // En móvil: cerrar el drawer
       this.closeMobileMenu();
+    } else {
+      // En escritorio: contraer el menú lateral
+      this.isSidebarCollapsed = true;
+      this.expandedModules.clear();
+      this.menuItems.forEach(module => { module.expanded = false; });
     }
   }
 
@@ -392,15 +398,19 @@ export class LayoutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.expandedModules.has(moduleId)) {
-      this.expandedModules.delete(moduleId);
-    } else {
-      this.expandedModules.add(moduleId);
-    }
+    const estabaAbierto = this.expandedModules.has(moduleId);
 
-    const module = this.menuItems.find(m => m.id_modulo === moduleId);
-    if (module) {
-      module.expanded = this.expandedModules.has(moduleId);
+    // Cerrar todos los submenús (comportamiento acordeón: solo uno abierto a la vez)
+    this.expandedModules.clear();
+    this.menuItems.forEach(module => { module.expanded = false; });
+
+    // Si el módulo no estaba abierto, abrir solo este
+    if (!estabaAbierto) {
+      this.expandedModules.add(moduleId);
+      const module = this.menuItems.find(m => m.id_modulo === moduleId);
+      if (module) {
+        module.expanded = true;
+      }
     }
   }
 

@@ -466,7 +466,13 @@ export class MisTerapiasComponent implements OnInit {
     }
 
     let texto = `${terapia.nombre || seguimiento?.terapia_nombre || 'Terapia sin nombre'}\n`;
-    texto += `${terapia.descripcion || seguimiento?.terapia_descripcion || 'Información detallada disponible con el terapeuta'}\n`;
+    if (terapia.observaciones_generales) {
+      texto += `\n⚠️  OBSERVACIONES GENERALES:\n${terapia.observaciones_generales}\n`;
+    }
+    texto += `\n${terapia.descripcion || seguimiento?.terapia_descripcion || 'Información detallada disponible con el terapeuta'}\n`;
+    if (terapia.descripcion_detallada) {
+      texto += `\n📝 DESCRIPCIÓN:\n${terapia.descripcion_detallada}\n`;
+    }
     texto += `Tipo: ${terapia.tipo || seguimiento?.terapia_tipo || 'No especificado'} | Nivel: ${terapia.nivel || seguimiento?.terapia_nivel || 'No especificado'}\n`;
     
     if (terapia.area_especializacion) {

@@ -43,6 +43,7 @@ export interface SeguimientoIndividualTerapia {
 
 export interface AsignacionCompletaTerapia {
   asignacion_id: number;
+  id_terapia?: number;
   terapia_nombre: string;
   terapia_descripcion?: string;
   terapia_tipo?: string;
@@ -137,6 +138,120 @@ Math: any;
     }
   }
 
+  // ================== Buscador de terapias (modal asignar) ==================
+  terapiaSearch = '';
+
+  opcionesTerapia(seleccionId?: number): Terapia[] {
+    const term = this.terapiaSearch.trim().toLowerCase();
+    let list = this.terapias;
+    if (term) {
+      list = this.terapias.filter(t => (t.nombre || '').toLowerCase().includes(term));
+    }
+    // Mantener visible la terapia ya seleccionada aunque no coincida con la búsqueda
+    if (seleccionId && !list.some(t => t.id === seleccionId)) {
+      const sel = this.terapias.find(t => t.id === seleccionId);
+      if (sel) {
+        list = [sel, ...list];
+      }
+    }
+    return list;
+  }
+
+  // Terapia (con sus textos) ligada a una asignación, para mostrar observaciones en el detalle
+  terapiaDeAsignacion(asignacion: any): Terapia | undefined {
+    if (!asignacion) { return undefined; }
+    return this.terapias.find(t => t.id === asignacion.id_terapia);
+  }
+
+  // ============ Editar asignación / contenido de la terapia (solo quien asigna) ============
+  showEditarModal = false;
+  editGuardando = false;
+  editError = '';
+  editAsignacion: any = null;
+  editFechaInicio = '';
+  editFechaFin = '';
+  editNotas = '';
+  editTerapia: Terapia | null = null;
+
+  async abrirEditarModal(asignacion: any): Promise<void> {
+    this.editAsignacion = asignacion;
+    this.editFechaInicio = (asignacion.fecha_inicio_programada || '').substring(0, 10);
+    this.editFechaFin = (asignacion.fecha_fin_programada || '').substring(0, 10);
+    this.editNotas = asignacion.notas_asignacion || '';
+    this.editTerapia = null;
+    this.editError = '';
+    this.showEditarModal = true;
+
+    try {
+      const id = asignacion.id_terapia;
+      let terapia: Terapia | null = this.terapias.find(t => t.id === id) || null;
+      if (!terapia && id) {
+        const data = await this.supabaseService.getDataWithFilters('terapias', '*', { id });
+        terapia = (data && data[0]) ? (data[0] as Terapia) : null;
+      }
+      if (terapia) {
+        this.editTerapia = {
+          ...terapia,
+          nombre: terapia.nombre || '',
+          observaciones_generales: terapia.observaciones_generales || '',
+          descripcion: terapia.descripcion || '',
+          descripcion_detallada: terapia.descripcion_detallada || ''
+        };
+      }
+    } catch (error) {
+      console.error('Error cargando terapia para editar:', error);
+    }
+  }
+
+  cerrarEditarModal(): void {
+    this.showEditarModal = false;
+    this.editAsignacion = null;
+    this.editTerapia = null;
+    this.editError = '';
+  }
+
+  async guardarEdicion(): Promise<void> {
+    if (!this.editAsignacion) { return; }
+    this.editGuardando = true;
+    this.editError = '';
+    try {
+      // Actualizar la asignación (fechas y notas)
+      await this.supabaseService.updateData(
+        'terapia_asignaciones_masivas',
+        this.editAsignacion.asignacion_id.toString(),
+        {
+          fecha_inicio: this.editFechaInicio,
+          fecha_fin: this.editFechaFin,
+          notas: this.editNotas
+        }
+      );
+
+      // Actualizar los textos de la terapia (si se cargó)
+      if (this.editTerapia && this.editTerapia.id) {
+        await this.supabaseService.updateData(
+          'terapias',
+          this.editTerapia.id.toString(),
+          {
+            nombre: this.editTerapia.nombre,
+            observaciones_generales: this.editTerapia.observaciones_generales,
+            descripcion: this.editTerapia.descripcion,
+            descripcion_detallada: this.editTerapia.descripcion_detallada,
+            updated_at: new Date().toISOString()
+          }
+        );
+      }
+
+      await this.loadTerapias();
+      await this.loadAsignaciones();
+      this.cerrarEditarModal();
+    } catch (error) {
+      console.error('Error guardando edición:', error);
+      this.editError = 'Error al guardar los cambios. Intenta nuevamente.';
+    } finally {
+      this.editGuardando = false;
+    }
+  }
+
   async loadUsuarios(): Promise<void> {
     try {
       const data = await this.supabaseService.getData('profiles');
@@ -185,6 +300,7 @@ Math: any;
 
       this.asignaciones = (data || []).map((item: any) => ({
         asignacion_id: item.id,
+        id_terapia: item.id_terapia,
         terapia_nombre: item.terapias?.nombre || 'Terapia no encontrada',
         terapia_descripcion: item.terapias?.descripcion || '',
         terapia_tipo: item.terapias?.tipo || '',
@@ -227,6 +343,7 @@ Math: any;
 
         return {
           asignacion_id: item.id,
+          id_terapia: item.id_terapia,
           terapia_nombre: terapia?.nombre || 'Terapia no encontrada',
           terapia_descripcion: terapia?.descripcion || '',
           terapia_tipo: terapia?.tipo || '',

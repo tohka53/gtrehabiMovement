@@ -53,7 +53,9 @@ export class RutinasComponent implements OnInit {
   // Formulario para rutina con index signature
   rutinaForm: Rutina = {
     nombre: '',
+    observaciones_generales: '',
     descripcion: '',
+    descripcion_detallada: '',
     tipo: 'entrenamiento',
     nivel: 'Intermedio', // Valor por defecto actualizado
     duracion_estimada: 60,
@@ -184,7 +186,9 @@ export class RutinasComponent implements OnInit {
     this.modalMode = 'create';
     this.rutinaForm = {
       nombre: '',
+      observaciones_generales: '',
       descripcion: '',
+      descripcion_detallada: '',
       tipo: 'entrenamiento',
       nivel: 'Intermedio', // Cambiar el valor por defecto
       duracion_estimada: 60,

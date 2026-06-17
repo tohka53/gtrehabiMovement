@@ -214,6 +214,120 @@ export class RutinasUsuarioComponent implements OnInit {
     }
   }
 
+  // ================== Buscador de rutinas (modal asignar) ==================
+  rutinaSearch = '';
+
+  opcionesRutina(seleccionId?: number): Rutina[] {
+    const term = this.rutinaSearch.trim().toLowerCase();
+    let list = this.rutinas;
+    if (term) {
+      list = this.rutinas.filter(r => (r.nombre || '').toLowerCase().includes(term));
+    }
+    // Mantener visible la rutina ya seleccionada aunque no coincida con la búsqueda
+    if (seleccionId && !list.some(r => r.id === seleccionId)) {
+      const sel = this.rutinas.find(r => r.id === seleccionId);
+      if (sel) {
+        list = [sel, ...list];
+      }
+    }
+    return list;
+  }
+
+  // Rutina (con sus textos) ligada a una asignación, para mostrar observaciones en el detalle
+  rutinaDeAsignacion(asignacion: any): Rutina | undefined {
+    if (!asignacion) { return undefined; }
+    return this.rutinas.find(r => r.id === asignacion.id_rutina);
+  }
+
+  // ============ Editar asignación / contenido de la rutina (solo quien asigna) ============
+  showEditarModal = false;
+  editGuardando = false;
+  editError = '';
+  editAsignacion: any = null;
+  editFechaInicio = '';
+  editFechaFin = '';
+  editNotas = '';
+  editRutina: Rutina | null = null;
+
+  async abrirEditarModal(asignacion: any): Promise<void> {
+    this.editAsignacion = asignacion;
+    this.editFechaInicio = (asignacion.fecha_inicio_programada || '').substring(0, 10);
+    this.editFechaFin = (asignacion.fecha_fin_programada || '').substring(0, 10);
+    this.editNotas = asignacion.notas_asignacion || '';
+    this.editRutina = null;
+    this.editError = '';
+    this.showEditarModal = true;
+
+    try {
+      const id = asignacion.id_rutina;
+      let rutina: Rutina | null = this.rutinas.find(r => r.id === id) || null;
+      if (!rutina && id) {
+        const data = await this.supabaseService.getDataWithFilters('rutinas', '*', { id });
+        rutina = (data && data[0]) ? (data[0] as Rutina) : null;
+      }
+      if (rutina) {
+        this.editRutina = {
+          ...rutina,
+          nombre: rutina.nombre || '',
+          observaciones_generales: rutina.observaciones_generales || '',
+          descripcion: rutina.descripcion || '',
+          descripcion_detallada: rutina.descripcion_detallada || ''
+        };
+      }
+    } catch (error) {
+      console.error('Error cargando rutina para editar:', error);
+    }
+  }
+
+  cerrarEditarModal(): void {
+    this.showEditarModal = false;
+    this.editAsignacion = null;
+    this.editRutina = null;
+    this.editError = '';
+  }
+
+  async guardarEdicion(): Promise<void> {
+    if (!this.editAsignacion) { return; }
+    this.editGuardando = true;
+    this.editError = '';
+    try {
+      // Actualizar la asignación (fechas y notas)
+      await this.supabaseService.updateData(
+        'rutina_asignaciones_masivas',
+        this.editAsignacion.asignacion_id.toString(),
+        {
+          fecha_inicio: this.editFechaInicio,
+          fecha_fin: this.editFechaFin,
+          notas: this.editNotas
+        }
+      );
+
+      // Actualizar los textos de la rutina (si se cargó)
+      if (this.editRutina && this.editRutina.id) {
+        await this.supabaseService.updateData(
+          'rutinas',
+          this.editRutina.id.toString(),
+          {
+            nombre: this.editRutina.nombre,
+            observaciones_generales: this.editRutina.observaciones_generales,
+            descripcion: this.editRutina.descripcion,
+            descripcion_detallada: this.editRutina.descripcion_detallada,
+            updated_at: new Date().toISOString()
+          }
+        );
+      }
+
+      await this.loadRutinas();
+      await this.loadAsignaciones();
+      this.cerrarEditarModal();
+    } catch (error) {
+      console.error('Error guardando edición:', error);
+      this.editError = 'Error al guardar los cambios. Intenta nuevamente.';
+    } finally {
+      this.editGuardando = false;
+    }
+  }
+
   async loadUsuarios(): Promise<void> {
     try {
       const data = await this.supabaseService.getData('profiles');
@@ -256,6 +370,7 @@ export class RutinasUsuarioComponent implements OnInit {
 
         return {
           asignacion_id: item.id,
+          id_rutina: item.id_rutina,
           rutina_nombre: item.rutinas?.nombre || 'Rutina no encontrada',
           rutina_descripcion: item.rutinas?.descripcion || '',
           fecha_inicio_programada: item.fecha_inicio,

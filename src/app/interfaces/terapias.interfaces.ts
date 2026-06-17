@@ -8,6 +8,8 @@ export interface Terapia {
   id?: number;
   nombre: string;
   descripcion?: string;
+  observaciones_generales?: string;
+  descripcion_detallada?: string;
   tipo: 'fisica' | 'ocupacional' | 'respiratoria' | 'neurologica' | 'cardiaca';
   area_especializacion?: string;
   nivel: string; // CAMBIO: Ahora permite cualquier string libre

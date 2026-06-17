@@ -39,7 +39,8 @@ export class AuthGuard implements CanActivate {
     console.log('Verificando acceso a ruta:', targetRoute);
 
     // Rutas que no requieren verificación de permisos específicos
-    const publicRoutes = ['/dashboard', '/login', '/register'];
+    // (el control de admin de /articulos lo hace AdminGuard)
+    const publicRoutes = ['/dashboard', '/login', '/register', '/articulos'];
     if (publicRoutes.includes(targetRoute)) {
       console.log('Ruta pública, acceso permitido');
       return true;

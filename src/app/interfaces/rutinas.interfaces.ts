@@ -42,6 +42,8 @@ export interface Rutina {
   id?: number;
   nombre: string;
   descripcion?: string;
+  observaciones_generales?: string;
+  descripcion_detallada?: string;
   tipo: string;
   nivel: string;
   duracion_estimada?: number;

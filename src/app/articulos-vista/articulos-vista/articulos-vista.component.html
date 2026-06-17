@@ -1,0 +1,116 @@
+<!-- src/app/articulos-vista/articulos-vista/articulos-vista.component.html -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+  <!-- Encabezado -->
+  <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between gap-3">
+    <div>
+      <h2 class="text-xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-newspaper text-red-600 mr-3"></i>
+        Artículos
+      </h2>
+      <p class="text-sm text-gray-500">{{ esAdmin ? 'Usa las flechas para revisar los artículos de cualquier mes.' : 'Novedades y consejos de este mes.' }}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Navegación de mes (solo el creador/admin) -->
+      <button *ngIf="esAdmin" (click)="mesAnterior()"
+              class="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+              title="Mes anterior">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <span (click)="esAdmin ? irMesActual() : null"
+            [class.cursor-pointer]="esAdmin"
+            class="inline-flex items-center text-sm font-medium text-red-700 bg-red-50 px-3 py-1.5 rounded-full whitespace-nowrap"
+            [attr.title]="esAdmin ? 'Ir al mes actual' : null">
+        <i class="far fa-calendar mr-2"></i> {{ nombreMes(selectedMes) }} {{ selectedAnio }}
+      </span>
+
+      <button *ngIf="esAdmin" (click)="mesSiguiente()"
+              class="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+              title="Mes siguiente">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+
+      <button *ngIf="esAdmin" (click)="irAAdministrar()"
+              class="inline-flex items-center text-sm font-medium bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
+              title="Crear y administrar artículos">
+        <i class="fas fa-plus mr-1.5"></i> Nuevo artículo
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="p-4 sm:p-6">
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center items-center h-40">
+      <div class="animate-spin rounded-full h-9 w-9 border-b-2 border-red-600"></div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!loading && error"
+         class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {{ error }}
+    </div>
+
+    <!-- Mes actual sin artículos -->
+    <div *ngIf="!loading && !error && articulosVisibles.length === 0"
+         class="text-center py-12">
+      <i class="far fa-calendar-xmark text-4xl text-gray-300 mb-3"></i>
+      <p class="text-gray-500">No hay artículos publicados en {{ nombreMes(selectedMes) }} de {{ selectedAnio }}.</p>
+    </div>
+
+    <!-- Tarjetas -->
+    <div *ngIf="!loading && !error && articulosVisibles.length > 0"
+         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <article *ngFor="let a of articulosVisibles; trackBy: trackById"
+               (click)="abrir(a)"
+               class="group bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-red-200 transition-all duration-200 flex flex-col">
+        <!-- Imagen / portada -->
+        <div class="h-44 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center overflow-hidden">
+          <img *ngIf="a.imagen_url" [src]="a.imagen_url" [alt]="a.titulo"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          <i *ngIf="!a.imagen_url" class="fas fa-newspaper text-white text-4xl opacity-70"></i>
+        </div>
+
+        <div class="p-5 flex flex-col flex-1">
+          <span class="text-xs font-medium text-red-600 mb-2">
+            <i class="far fa-calendar mr-1"></i> {{ formatFecha(a.fecha_publicacion) }}
+          </span>
+          <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-700 transition-colors">
+            {{ a.titulo }}
+          </h3>
+          <p class="text-sm text-gray-500 line-clamp-3 flex-1">{{ resumen(a.contenido) }}</p>
+          <span class="mt-4 text-sm font-medium text-red-600 group-hover:text-red-800">
+            Leer más <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </span>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL DE LECTURA ===================== -->
+<div *ngIf="selectedArticulo" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60" (click)="cerrar()"></div>
+
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <!-- Imagen superior -->
+    <div *ngIf="selectedArticulo.imagen_url" class="h-56 sm:h-64 overflow-hidden rounded-t-2xl">
+      <img [src]="selectedArticulo.imagen_url" [alt]="selectedArticulo.titulo" class="w-full h-full object-cover">
+    </div>
+
+    <button (click)="cerrar()"
+            class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 text-gray-700 hover:bg-white shadow flex items-center justify-center">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="p-6 sm:p-8">
+      <span class="inline-flex items-center text-xs font-medium text-red-700 bg-red-50 px-3 py-1 rounded-full mb-3">
+        <i class="far fa-calendar mr-1"></i>
+        {{ nombreMes(selectedArticulo.mes) }} {{ selectedArticulo.anio }}
+        <span *ngIf="selectedArticulo.fecha_publicacion"> · {{ formatFecha(selectedArticulo.fecha_publicacion) }}</span>
+      </span>
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ selectedArticulo.titulo }}</h2>
+      <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ selectedArticulo.contenido }}</p>
+    </div>
+  </div>
+</div>

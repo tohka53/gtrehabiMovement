@@ -281,6 +281,21 @@
           <!-- Información Básica -->
           <div class="space-y-6">
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <!-- Observaciones Generales -->
+              <div class="sm:col-span-2">
+                <label for="observaciones_generales" class="block text-sm font-medium text-gray-700">
+                  Observaciones Generales
+                </label>
+                <textarea
+                  id="observaciones_generales"
+                  [(ngModel)]="terapiaForm.observaciones_generales"
+                  name="observaciones_generales"
+                  rows="2"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
+                  placeholder="Observaciones generales a tener en cuenta para esta terapia..."
+                ></textarea>
+              </div>
+
               <!-- Nombre -->
               <div class="sm:col-span-2">
                 <label for="nombre" class="block text-sm font-medium text-gray-700">
@@ -297,10 +312,10 @@
                 >
               </div>
 
-              <!-- Descripción -->
+              <!-- Descripción General -->
               <div class="sm:col-span-2">
                 <label for="descripcion" class="block text-sm font-medium text-gray-700">
-                  Descripción
+                  Descripción General
                 </label>
                 <textarea
                   id="descripcion"
@@ -309,7 +324,22 @@
                   rows="3"
                   cols="50"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
-                  placeholder="Descripción detallada de la terapia..."
+                  placeholder="Descripción general de la terapia..."
+                ></textarea>
+              </div>
+
+              <!-- Descripción (detallada) -->
+              <div class="sm:col-span-2">
+                <label for="descripcion_detallada" class="block text-sm font-medium text-gray-700">
+                  Descripción
+                </label>
+                <textarea
+                  id="descripcion_detallada"
+                  [(ngModel)]="terapiaForm.descripcion_detallada"
+                  name="descripcion_detallada"
+                  rows="4"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm form-input"
+                  placeholder="Descripción detallada, instrucciones o notas adicionales..."
                 ></textarea>
               </div>
 

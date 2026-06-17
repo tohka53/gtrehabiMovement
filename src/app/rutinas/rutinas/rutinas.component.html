@@ -333,6 +333,16 @@
         </div>
         <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
           <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Observaciones Generales</label>
+            <textarea
+              [(ngModel)]="rutinaForm.observaciones_generales"
+              rows="2"
+              class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-colors resize-none"
+              placeholder="Observaciones generales a tener en cuenta para esta rutina..."
+            ></textarea>
+          </div>
+
+          <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1.5">
               Nombre <span class="text-red-500">*</span>
             </label>
@@ -400,12 +410,22 @@
           </div>
 
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Descripción</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Descripción General</label>
             <textarea
               [(ngModel)]="rutinaForm.descripcion"
               rows="3"
               class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-colors resize-none"
               placeholder="Breve descripción de la rutina, objetivo principal, contraindicaciones..."
+            ></textarea>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Descripción</label>
+            <textarea
+              [(ngModel)]="rutinaForm.descripcion_detallada"
+              rows="4"
+              class="block w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-colors resize-none"
+              placeholder="Descripción detallada, instrucciones o notas adicionales..."
             ></textarea>
           </div>
         </div>

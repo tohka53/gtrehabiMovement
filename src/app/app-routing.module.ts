@@ -21,6 +21,7 @@ import { InformacionMedicaUsuariosComponent } from './informacion-medica-usuario
 import { CompraPaquetesComponent } from './compra-paquetes/compra-paquetes/compra-paquetes.component';
 import { MisComprasComponent } from './mis-compras/mis-compras/mis-compras.component';
 import { ValidacionComprasComponent } from './validacion-compras/validacion-compras/validacion-compras.component';
+import { ArticulosComponent } from './articulos/articulos/articulos.component';
 import { AdminGuard } from './guards/admin.guard';
 import { CommonModule, TitleCasePipe, SlicePipe, DatePipe, CurrencyPipe } from '@angular/common';
 
@@ -168,6 +169,12 @@ const routes: Routes = [
     component: ValidacionComprasComponent,
     canActivate: [AuthGuard, AdminGuard], // ⚠️ Solo administradores
     data: { title: 'Validación de Compras' }
+  },
+  {
+    path: 'articulos',
+    component: ArticulosComponent,
+    canActivate: [AuthGuard, AdminGuard], // ⚠️ Solo administradores
+    data: { title: 'Gestión de Artículos' }
   },
 
 

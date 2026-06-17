@@ -1,0 +1,4 @@
+/* src/app/articulos/articulos/articulos.component.css */
+:host {
+  display: block;
+}

@@ -42,6 +42,24 @@ export class LandingComponent implements OnInit {
       title: 'Programación de ejercicios funcionales',
       description: 'Creamos un plan de entrenamiento adaptado a tus objetivos individuales: ya sea ganar fuerza, mejorar la postura, prevenir lesiones o aumentar tu rendimiento. Utilizamos movimientos funcionales y progresiones terapéuticas para que alcances tus metas de forma segura, eficiente y sostenible.',
       features: ['Masoterapia', 'Electroterapia', 'Termoterapia']
+    },
+    {
+      icon: 'fas fa-brain',
+      title: 'Fisioterapia neurológica',
+      description: 'Tratamiento dirigido a personas con afecciones del sistema nervioso central o periférico, como secuelas de ACV, lesiones medulares, Parkinson o neuropatías. Trabajamos la reeducación del movimiento, el equilibrio, la coordinación y la funcionalidad para favorecer la mayor independencia posible en las actividades de la vida diaria.',
+      features: ['Reeducación del movimiento', 'Entrenamiento de equilibrio', 'Recuperación funcional']
+    },
+    {
+      icon: 'fas fa-bone',
+      title: 'Fisioterapia traumatológica y ortopedia',
+      description: 'Rehabilitación de lesiones del sistema musculoesquelético: fracturas, esguinces, posoperatorios, tendinopatías y problemas articulares. Combinamos terapia manual, ejercicio terapéutico y técnicas de recuperación para reducir el dolor, restaurar la movilidad y devolverte a tus actividades con seguridad.',
+      features: ['Rehabilitación posoperatoria', 'Terapia manual', 'Recuperación de lesiones']
+    },
+    {
+      icon: 'fas fa-shield-alt',
+      title: 'Fisioterapia preventiva',
+      description: 'Enfocada en evitar lesiones antes de que aparezcan. Mediante valoración postural, análisis de movimiento y programas de fortalecimiento, identificamos factores de riesgo y diseñamos estrategias para cuidar tu cuerpo en el trabajo, el deporte y el día a día.',
+      features: ['Valoración postural', 'Prevención de lesiones', 'Educación y hábitos saludables']
     }
   ];
 

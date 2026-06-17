@@ -40,6 +40,18 @@
         <span [class]="isCollapsed ? 'hidden' : 'block'">Dashboard</span>
       </a>
 
+      <!-- Artículos (solo administradores) -->
+      <a
+        *ngIf="currentUser?.id_perfil === 1"
+        href="/articulos"
+        [class]="'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ' +
+                 (isRouteActive('/articulos') ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white')"
+        [attr.title]="isCollapsed ? 'Artículos' : null"
+      >
+        <i class="fas fa-newspaper flex-shrink-0 w-5 h-5 mr-3"></i>
+        <span [class]="isCollapsed ? 'hidden' : 'block'">Artículos</span>
+      </a>
+
       <!-- Dynamic Menu Items -->
       <div *ngFor="let module of getFilteredMenuItems()" class="space-y-1">
         <!-- Módulo padre con hijos -->

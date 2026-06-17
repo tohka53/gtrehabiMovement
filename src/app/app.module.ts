@@ -26,6 +26,8 @@ import { CalendarioTerapiasComponent } from './calendario-terapias/calendario-te
 import { CalendarioPaquetesComponent } from './calendario-paquetes/calendario-paquetes/calendario-paquetes.component';
 import { AvatarComponent } from './avatar/avatar/avatar.component';
 import { MotivationalQuotesComponent } from './motivational-quotes/motivational-quotes.component';
+import { ArticulosComponent } from './articulos/articulos/articulos.component';
+import { ArticulosVistaComponent } from './articulos-vista/articulos-vista/articulos-vista.component';
 import { inject } from '@vercel/analytics';
 import { ChatDiscussionComponent } from './chat-discussion/chat-discussion/chat-discussion.component';
 import { ValidacionComprasComponent } from './validacion-compras/validacion-compras/validacion-compras.component';
@@ -60,11 +62,9 @@ inject();
     
     ValidacionComprasComponent,
     MisComprasComponent,
-    CalendarioAsignacionRutinasComponent
-    
-    
-
-   
+    CalendarioAsignacionRutinasComponent,
+    ArticulosComponent,
+    ArticulosVistaComponent
   ],
   imports: [
     BrowserModule,

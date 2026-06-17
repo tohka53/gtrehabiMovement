@@ -428,8 +428,16 @@ export class MisRutinasComponent implements OnInit {
     texto += '║' + `🏋️  ${rutina.nombre.toUpperCase()}`.padEnd(78) + '║\n';
     texto += '╚' + '═'.repeat(78) + '╝\n';
     
+    if (rutina.observaciones_generales) {
+      texto += `⚠️  OBSERVACIONES GENERALES:\n${rutina.observaciones_generales}\n\n`;
+    }
+
     texto += `${rutina.descripcion || 'Rutina de entrenamiento completa'}\n\n`;
-    
+
+    if (rutina.descripcion_detallada) {
+      texto += `📝 DESCRIPCIÓN:\n${rutina.descripcion_detallada}\n\n`;
+    }
+
     // Información básica con iconos
     const nivelText = `Nivel: ${rutina.nivel.toUpperCase()}`;
     const duracionText = `Duración: ${this.formatDuracion(rutina.duracion_estimada)}`;
