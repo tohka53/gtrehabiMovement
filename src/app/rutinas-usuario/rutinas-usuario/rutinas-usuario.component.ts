@@ -179,10 +179,9 @@ export class RutinasUsuarioComponent implements OnInit {
     this.openVerModal(asignacion);
   }
 
-  onEditarAsignacionDesdeCalendario(asignacion: AsignacionCompleta): void {
-    // Aquí puedes implementar la lógica para editar desde el calendario
-    console.log('Editar asignación desde calendario:', asignacion);
-    // Por ejemplo, abrir un modal de edición específico
+  onEditarAsignacionDesdeCalendario(asignacion: any): void {
+    // Abrir el mismo modal de edición (fechas, notas y textos de la rutina)
+    this.abrirEditarModal(asignacion);
   }
 
   // ==============================================
@@ -259,7 +258,7 @@ export class RutinasUsuarioComponent implements OnInit {
     this.showEditarModal = true;
 
     try {
-      const id = asignacion.id_rutina;
+      const id = asignacion.id_rutina ?? asignacion.rutina_id;
       let rutina: Rutina | null = this.rutinas.find(r => r.id === id) || null;
       if (!rutina && id) {
         const data = await this.supabaseService.getDataWithFilters('rutinas', '*', { id });

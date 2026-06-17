@@ -58,6 +58,7 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
   @Input() asignaciones: AsignacionCompleta[] = [];
   @Output() verAsignacion = new EventEmitter<AsignacionCompleta>();
   @Output() editarAsignacion = new EventEmitter<AsignacionCompleta>();
+  @Input() puedeEditar = true;
 
   // Estado del calendario
   mesActual = new Date();
@@ -345,6 +346,13 @@ export class CalendarioAsignacionRutinasComponent implements OnInit {
   onVerCompleto(): void {
     if (this.asignacionSeleccionada) {
       this.verAsignacion.emit(this.asignacionSeleccionada);
+      this.cerrarDetalleModal();
+    }
+  }
+
+  onEditar(): void {
+    if (this.asignacionSeleccionada) {
+      this.editarAsignacion.emit(this.asignacionSeleccionada);
       this.cerrarDetalleModal();
     }
   }

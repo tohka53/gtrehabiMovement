@@ -346,6 +346,7 @@
      <div *ngIf="vistaActiva === 'calendario'">
       <app-calendario-asignacion-rutinas
         [asignaciones]="asignaciones"
+        [puedeEditar]="canAssignRoutines()"
         (verAsignacion)="openVerModal($event)"
         (editarAsignacion)="onEditarAsignacionDesdeCalendario($event)"
       ></app-calendario-asignacion-rutinas>
