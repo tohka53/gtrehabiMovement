@@ -62,9 +62,18 @@
         
         <div class="relative">
           <div class="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop" 
-                 alt="Fisioterapia" 
-                 class="rounded-xl w-full h-64 object-cover">
+            <video
+              #heroVideo
+              class="rounded-xl w-full h-64 object-cover bg-black"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="metadata">
+              <source src="/video.mp4" type="video/mp4">
+              <source src="/video.MOV" type="video/quicktime">
+              Tu navegador no soporta la reproducción de video.
+            </video>
             <div class="mt-4">
               <h3 class="text-lg font-semibold text-gray-900">Tratamiento Profesional</h3>
               <p class="text-gray-600">Con equipos de última generación</p>

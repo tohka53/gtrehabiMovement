@@ -58,7 +58,7 @@ export class PermissionsService {
     console.log('🔍 Verificando acceso a:', route, 'Usuario ID:', currentUser.id, 'Perfil:', currentUser.id_perfil);
 
     // Rutas públicas que no requieren verificación
-    const publicRoutes = ['/dashboard', '/login', '/register'];
+    const publicRoutes = ['/dashboard', '/login', '/register', '/articulos'];
     if (publicRoutes.includes(route)) {
       console.log('✅ Ruta pública, acceso permitido');
       return true;

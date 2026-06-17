@@ -1,5 +1,5 @@
 // src/app/landing/landing.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -8,7 +8,8 @@ import { Router } from '@angular/router';
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css']
 })
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, AfterViewInit {
+  @ViewChild('heroVideo') heroVideo?: ElementRef<HTMLVideoElement>;
   
   // Datos para la sección de servicios
   services = [
@@ -119,6 +120,18 @@ export class LandingComponent implements OnInit {
 
   ngOnInit(): void {
     // Inicialización del componente
+  }
+
+  ngAfterViewInit(): void {
+    // Asegurar autoplay del video del hero (el navegador exige muted)
+    const video = this.heroVideo?.nativeElement;
+    if (video) {
+      video.muted = true;
+      const intento = video.play();
+      if (intento && typeof intento.catch === 'function') {
+        intento.catch(() => { /* autoplay bloqueado: el video queda listo para reproducir */ });
+      }
+    }
   }
 
   // Navegación suave a secciones
