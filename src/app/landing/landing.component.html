@@ -45,7 +45,7 @@
             <span class="text-red-500">Tu Movimiento</span>
           </h1>
           <p class="text-xl text-gray-300 mb-8">
-              Fisioterapia especializada en Guatemala. El movimiento es vida. Nosotros te ayudamos a recuperarlo.
+              Fisioterapia especializada en Guatemala. El movimiento es vida, nosotros te ayudamos a recuperarlo.
               Devolvemos calidad de vida a nuestros pacientes a través de tratamientos personalizados que combinan ejercicio terapéutico, atención cercana y rehabilitación basada en evidencia.
               Diseñamos planes únicos para cada etapa de la vida, enfocándonos en el movimiento, la funcionalidad y tu bienestar integral.
           </p>
@@ -75,8 +75,11 @@
               Tu navegador no soporta la reproducción de video.
             </video>
             <div class="mt-4">
-              <h3 class="text-lg font-semibold text-gray-900">Tratamiento Profesional</h3>
-              <p class="text-gray-600">Con equipos de última generación</p>
+              <button (click)="scrollToSection('servicios')"
+                      class="w-full text-left flex items-center justify-between group focus:outline-none">
+                <span class="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">Escoge tu plan</span>
+                <i class="fas fa-arrow-right text-red-600 group-hover:translate-x-1 transition-transform"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -130,7 +133,7 @@
            RehabiMovement es una clínica de fisioterapia ubicada en zona 15, Ciudad de Guatemala, comprometida con devolver el movimiento y la calidad de vida a nuestros pacientes. Nos especializamos en la atención personalizada a través del ejercicio terapéutico, siendo este el pilar fundamental de nuestros tratamientos.
           </p>
            <p class="text-lg text-gray-600 mb-6">
-            Con más de 5 años de experiencia clínica, hemos acompañado a cientos de personas en su proceso de rehabilitación, desde adultos mayores hasta deportistas, ayudándoles a recuperar su funcionalidad, reducir el dolor y alcanzar sus objetivos de salud.
+            Con más de 7 años de experiencia clínica, hemos acompañado a cientos de personas en su proceso de rehabilitación, desde adultos mayores hasta deportistas, ayudándoles a recuperar su funcionalidad, reducir el dolor y alcanzar sus objetivos de salud.
           </p>
            <p class="text-lg text-gray-600 mb-6">
             Creemos firmemente en el poder del movimiento, el trato humano y la planificación basada en evidencia científica. Nuestro equipo está en constante formación para ofrecerte lo mejor de la fisioterapia actual, adaptada a tus necesidades específicas.
@@ -251,8 +254,7 @@
               <div>
                 <h4 class="text-lg font-semibold text-gray-900 mb-2">Teléfono</h4>
                 <p class="text-gray-600">
-                  +502 5412-1199<br>
-                  +502 5879-5979
+                  +502 5412-1199
                 </p>
               </div>
             </div>

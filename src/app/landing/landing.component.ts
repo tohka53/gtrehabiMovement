@@ -27,7 +27,7 @@ export class LandingComponent implements OnInit, AfterViewInit {
     },
     {
       icon: 'fas fa-user-md',
-      title: 'Fisioterapia geriátrica',
+      title: 'Fisioterapia Geriátrica',
       description: 'Diseñamos programas de ejercicio seguros y eficaces para personas mayores, basados en herramientas de evaluación clínica y funcional. Nuestro enfoque está en mejorar fuerza, equilibrio, resistencia y capacidad aeróbica, promoviendo una vejez activa, autónoma y con propósito desde etapas tempranas.',
       features: ['Evaluación completa', 'Seguimiento continuo', 'Planes personalizados']
     },
@@ -46,13 +46,13 @@ export class LandingComponent implements OnInit, AfterViewInit {
     },
     {
       icon: 'fas fa-brain',
-      title: 'Fisioterapia neurológica',
+      title: 'Fisioterapia Neurológica',
       description: 'Tratamiento dirigido a personas con afecciones del sistema nervioso central o periférico, como secuelas de ACV, lesiones medulares, Parkinson o neuropatías. Trabajamos la reeducación del movimiento, el equilibrio, la coordinación y la funcionalidad para favorecer la mayor independencia posible en las actividades de la vida diaria.',
       features: ['Reeducación del movimiento', 'Entrenamiento de equilibrio', 'Recuperación funcional']
     },
     {
       icon: 'fas fa-bone',
-      title: 'Fisioterapia traumatológica y ortopedia',
+      title: 'Fisioterapia Traumatológica y Ortopedia',
       description: 'Rehabilitación de lesiones del sistema musculoesquelético: fracturas, esguinces, posoperatorios, tendinopatías y problemas articulares. Combinamos terapia manual, ejercicio terapéutico y técnicas de recuperación para reducir el dolor, restaurar la movilidad y devolverte a tus actividades con seguridad.',
       features: ['Rehabilitación posoperatoria', 'Terapia manual', 'Recuperación de lesiones']
     },
@@ -112,7 +112,7 @@ export class LandingComponent implements OnInit, AfterViewInit {
     role: 'Fisioterapeuta Principal',
     specialization: 'Licenciado en fisioterapia',
    image: '/lucciuki.png', // Opción 3
-    experience: '5 años de experiencia'
+    experience: 'Más de 7 años de experiencia'
   }
   ];
 
