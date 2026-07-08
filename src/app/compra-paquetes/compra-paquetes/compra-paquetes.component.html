@@ -585,14 +585,7 @@
         <i class="fas fa-lock mr-2"></i>
         Pagar {{ formatearPrecio(resumenCompra?.precio_final || 0) }}
       </button>
-<button 
-  *ngIf="pasoActual === 'datos-pago'"
-  type="button" 
-  class="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg mb-4"
-  (click)="verEstadoFormulario()">
-  🐛 Debug: Ver Estado del Formulario
-</button>
-      <button *ngIf="pasoActual === 'resultado'" type="button" 
+      <button *ngIf="pasoActual === 'resultado'" type="button"
               class="px-6 py-3 rounded-lg"
               [class]="pagoExitoso ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'"
               (click)="finalizarPago()">

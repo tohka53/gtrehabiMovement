@@ -46,10 +46,13 @@ export interface PaymentProcessingResult {
 })
 export class CyberSourcePaymentService {
 
+  // El ambiente de CyberSource se controla con environment.cybersourceProduction
+  // (independiente del build, porque durante la certificación de Visanet el sitio
+  // puede estar publicado pero las transacciones siguen siendo de TEST).
   private config = {
-    environment: 'TEST' as 'TEST' | 'PRODUCTION',
-    merchantId: 'rehabimovement_test',
-    orgId: '1snn5n9w', // TEST - Cambiar a 'k8vif92e' en producción
+    environment: (environment.cybersourceProduction ? 'PRODUCTION' : 'TEST') as 'TEST' | 'PRODUCTION',
+    merchantId: 'visanetgt_rehabimovement',
+    orgId: environment.cybersourceProduction ? 'k8vif92e' : '1snn5n9w',
     deviceFingerprintUrl: 'https://h.online-metrix.net'
   };
 

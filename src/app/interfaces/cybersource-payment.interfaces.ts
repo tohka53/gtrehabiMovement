@@ -172,7 +172,7 @@ export interface PaymentProcessingResult {
  */
 export const CYBERSOURCE_CONFIG = {
   TEST: {
-    merchantId: 'rehabiMovement_test', // CAMBIAR por tu Merchant ID de TEST
+    merchantId: 'visanetgt_rehabimovement', // Merchant ID de TEST (VisaNet GT)
     orgId: '1snn5n9w',
     apiEndpoint: 'https://apitest.cybersource.com',
     environment: 'TEST' as const

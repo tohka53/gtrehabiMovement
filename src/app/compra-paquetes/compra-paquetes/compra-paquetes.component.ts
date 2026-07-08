@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CompraPaquetesService } from '../../services/compra-paquetes.service';
 import { AuthService } from '../../services/auth.service';
 import { CyberSourcePaymentService, PaymentFormData } from '../../services/cybersource-payment.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-compra-paquetes',
@@ -61,7 +62,8 @@ export class CompraPaquetesComponent implements OnInit, OnDestroy {
   aniosExpiracion: string[] = [];
   mesesExpiracion = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
   
-  mostrarTarjetasPrueba = true;
+  // Solo visible en desarrollo; en build de producción desaparece automáticamente
+  mostrarTarjetasPrueba = !environment.production;
   tarjetasPrueba = [
     { numero: '4111111111111111', tipo: 'Visa', cvv: '123', descripcion: 'Aprobada' },
     { numero: '4000300011112220', tipo: 'Visa', cvv: '123', descripcion: 'Rechazada' },
@@ -301,10 +303,14 @@ export class CompraPaquetesComponent implements OnInit, OnDestroy {
     if (usuario) {
       const nombres = usuario.full_name?.split(' ') || ['', ''];
       
+      // Solo precargar el email si el username es un correo válido
+      // (la tabla profiles no tiene campo email; username puede ser un alias como 'mmm')
+      const esEmailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(usuario.username || '');
+
       this.formularioPagoTarjeta.patchValue({
         primerNombre: nombres[0],
         apellido: nombres.slice(1).join(' ') || nombres[0],
-        email: usuario.username
+        ...(esEmailValido ? { email: usuario.username } : {})
       });
     }
   }
@@ -578,34 +584,4 @@ export class CompraPaquetesComponent implements OnInit, OnDestroy {
     }
   }
 
-  verEstadoFormulario(): void {
-    const form = this.formularioPagoTarjeta;
-    console.log('====================================');
-    console.log('📋 ESTADO DEL FORMULARIO DE PAGO CON TARJETA');
-    console.log('====================================');
-    console.log('✅ Formulario válido:', form.valid);
-    console.log('📝 Formulario dirty:', form.dirty);
-    console.log('👆 Formulario touched:', form.touched);
-    console.log('\n📊 ESTADO DE CAMPOS:');
-    
-    Object.keys(form.controls).forEach(key => {
-      const control = form.get(key);
-      if (control?.invalid) {
-        console.log(`❌ ${key}:`, {
-          valor: control.value,
-          valido: control.valid,
-          errores: control.errors,
-          touched: control.touched,
-          dirty: control.dirty
-        });
-      } else {
-        console.log(`✅ ${key}:`, control?.value);
-      }
-    });
-    
-    console.log('\n🔍 RESUMEN:');
-    console.log('- Campos inválidos:', Object.keys(this.obtenerErroresFormulario(form)).length);
-    console.log('- Errores:', this.obtenerErroresFormulario(form));
-    console.log('====================================');
-  }
 }
