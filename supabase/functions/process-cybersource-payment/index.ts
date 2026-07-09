@@ -157,7 +157,7 @@ serve(async (req) => {
 
     const { data: paquete, error: packageError } = await supabase
       .from('paquetes')
-      .select('id, nombre, precio, tipo, status')
+      .select('id, nombre, precio, descuento, tipo, status')
       .eq('id', requestData.packageId)
       .eq('status', 1)
       .single()
@@ -165,10 +165,13 @@ serve(async (req) => {
     if (packageError || !paquete) throw new Error('Paquete no encontrado')
 
     // -----------------------------------------------------------------
-    // 2. Calcular monto en el servidor (nunca confiar en el cliente)
+    // 2. Calcular monto en el servidor (nunca confiar en el cliente).
+    //    Misma regla que el front: el precio final es el MEJOR entre el
+    //    % de descuento propio del paquete y la tabla descuentos_paquetes.
     // -----------------------------------------------------------------
-    let precioEsperado = Number(paquete.precio)
-    let descuentoAplicado = 0
+    const precioLista = Number(paquete.precio)
+    const pctPropio = Number(paquete.descuento) || 0
+    let precioEsperado = Math.round(precioLista * (1 - pctPropio / 100) * 100) / 100
 
     const { data: descuento } = await supabase
       .rpc('calcular_descuento_paquete', {
@@ -178,9 +181,10 @@ serve(async (req) => {
       .maybeSingle()
 
     if (descuento && descuento.precio_final != null) {
-      precioEsperado = Number(descuento.precio_final)
-      descuentoAplicado = Number(paquete.precio) - precioEsperado
+      precioEsperado = Math.min(precioEsperado, Number(descuento.precio_final))
     }
+
+    const descuentoAplicado = Math.round((precioLista - precioEsperado) * 100) / 100
 
     const montoCliente = Number(requestData.payment.amount)
     if (Math.abs(montoCliente - precioEsperado) > 0.01) {
@@ -283,6 +287,60 @@ serve(async (req) => {
         throw new Error(`Pago aprobado (TxID ${transactionId}) pero falló el registro. Contacta a soporte.`)
       }
 
+      // ---------------------------------------------------------------
+      // 5. Asignar el paquete automáticamente (mismo flujo que la
+      //    validación de admin, pero inmediato porque el pago ya se cobró)
+      // ---------------------------------------------------------------
+      let asignacionCompletada = false
+      let usuarioPaqueteId: number | null = null
+
+      try {
+        const tipo = String(paquete.tipo ?? '').toLowerCase()
+        const rpcName = tipo === 'terapia'
+          ? 'asignar_paquete_terapias_completo'
+          : tipo === 'rutina'
+            ? 'asignar_paquete_rutinas_completo'
+            : null
+
+        if (rpcName) {
+          const rpcParams: Record<string, unknown> = {
+            p_usuario_id: requestData.userId,
+            p_paquete_id: requestData.packageId,
+            p_precio_pagado: precioEsperado,
+            p_fecha_inicio: new Date().toISOString().split('T')[0],
+            p_metodo_pago: 'tarjeta_credito',
+            p_asignado_por: requestData.userId,
+          }
+          if (tipo === 'terapia') rpcParams.p_terapeuta_id = null
+
+          const { data: asignacion, error: asignacionError } = await supabase.rpc(rpcName, rpcParams)
+
+          if (!asignacionError && asignacion?.success) {
+            asignacionCompletada = true
+            usuarioPaqueteId = asignacion.usuario_paquete_id ?? null
+
+            await supabase
+              .from('compras_paquetes')
+              .update({
+                asignacion_completada: true,
+                usuario_paquete_id: usuarioPaqueteId,
+                fecha_asignacion: new Date().toISOString(),
+              })
+              .eq('id', compra.id)
+
+            console.log('✅ Paquete asignado automáticamente. usuario_paquete_id:', usuarioPaqueteId)
+          } else {
+            console.error('⚠️ Asignación automática falló (queda pendiente de asignación manual):',
+              asignacionError?.message ?? JSON.stringify(asignacion))
+          }
+        } else {
+          console.error(`⚠️ Tipo de paquete desconocido ('${paquete.tipo}'), asignación manual requerida`)
+        }
+      } catch (asignError: any) {
+        // El pago y el registro fueron exitosos; la asignación puede hacerse manualmente
+        console.error('⚠️ Error en asignación automática:', asignError.message)
+      }
+
       return jsonResponse({
         success: true,
         transactionId,
@@ -290,8 +348,12 @@ serve(async (req) => {
         amount: precioEsperado,
         currency: requestData.payment.currency || 'GTQ',
         status: 'AUTHORIZED',
-        message: 'Pago procesado exitosamente',
+        message: asignacionCompletada
+          ? 'Pago procesado y paquete asignado exitosamente'
+          : 'Pago procesado. Tu paquete será asignado en breve.',
         compraId: compra.id,
+        asignacionCompletada,
+        usuarioPaqueteId,
       })
     }
 

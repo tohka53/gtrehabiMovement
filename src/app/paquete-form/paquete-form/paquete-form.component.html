@@ -131,8 +131,27 @@
           <p class="mt-2 text-gray-600">Cargando opciones disponibles...</p>
         </div>
 
+        <!-- Buscador de contenido -->
+        <div *ngIf="!cargandoOpciones && (rutinasDisponibles.length > 0 || terapiasDisponibles.length > 0)" class="mb-4">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input
+              type="text"
+              [(ngModel)]="busquedaContenido"
+              [ngModelOptions]="{standalone: true}"
+              [placeholder]="'Buscar ' + (paqueteForm.get('tipo')?.value === 'rutina' ? 'rutinas' : 'terapias') + ' por nombre...'"
+              class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <button *ngIf="busquedaContenido" type="button"
+                    (click)="busquedaContenido = ''"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
         <!-- Selector de Rutinas -->
-        <div *ngIf="!cargandoOpciones && paqueteForm.get('tipo')?.value === 'rutina'" class="space-y-3">
+        <div *ngIf="!cargandoOpciones && paqueteForm.get('tipo')?.value === 'rutina'"
+             class="space-y-3 max-h-96 overflow-y-auto pr-1">
           <div *ngIf="rutinasDisponibles.length === 0" class="text-center py-8 text-gray-500">
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -141,7 +160,11 @@
             <p class="text-sm">Crea rutinas primero para poder seleccionarlas</p>
           </div>
 
-          <div *ngFor="let rutina of rutinasDisponibles" 
+          <div *ngIf="rutinasDisponibles.length > 0 && rutinasFiltradas.length === 0" class="text-center py-6 text-gray-500">
+            <p>Sin resultados para "{{ busquedaContenido }}"</p>
+          </div>
+
+          <div *ngFor="let rutina of rutinasFiltradas"
                class="border rounded-lg p-4 transition-all duration-200 hover:shadow-md"
                [class.border-blue-500]="rutina.seleccionado"
                [class.bg-blue-50]="rutina.seleccionado"
@@ -183,7 +206,8 @@
         </div>
 
         <!-- Selector de Terapias -->
-        <div *ngIf="!cargandoOpciones && paqueteForm.get('tipo')?.value === 'terapia'" class="space-y-3">
+        <div *ngIf="!cargandoOpciones && paqueteForm.get('tipo')?.value === 'terapia'"
+             class="space-y-3 max-h-96 overflow-y-auto pr-1">
           <div *ngIf="terapiasDisponibles.length === 0" class="text-center py-8 text-gray-500">
             <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
@@ -192,7 +216,11 @@
             <p class="text-sm">Crea terapias primero para poder seleccionarlas</p>
           </div>
 
-          <div *ngFor="let terapia of terapiasDisponibles" 
+          <div *ngIf="terapiasDisponibles.length > 0 && terapiasFiltradas.length === 0" class="text-center py-6 text-gray-500">
+            <p>Sin resultados para "{{ busquedaContenido }}"</p>
+          </div>
+
+          <div *ngFor="let terapia of terapiasFiltradas"
                class="border rounded-lg p-4 transition-all duration-200 hover:shadow-md"
                [class.border-blue-500]="terapia.seleccionado"
                [class.bg-blue-50]="terapia.seleccionado"

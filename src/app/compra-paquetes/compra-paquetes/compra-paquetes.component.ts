@@ -7,7 +7,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CompraPaquetesService } from '../../services/compra-paquetes.service';
 import { AuthService } from '../../services/auth.service';
 import { CyberSourcePaymentService, PaymentFormData } from '../../services/cybersource-payment.service';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-compra-paquetes',
@@ -61,14 +60,6 @@ export class CompraPaquetesComponent implements OnInit, OnDestroy {
   
   aniosExpiracion: string[] = [];
   mesesExpiracion = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-  
-  // Solo visible en desarrollo; en build de producción desaparece automáticamente
-  mostrarTarjetasPrueba = !environment.production;
-  tarjetasPrueba = [
-    { numero: '4111111111111111', tipo: 'Visa', cvv: '123', descripcion: 'Aprobada' },
-    { numero: '4000300011112220', tipo: 'Visa', cvv: '123', descripcion: 'Rechazada' },
-    { numero: '5555555555554444', tipo: 'Mastercard', cvv: '123', descripcion: 'Aprobada' }
-  ];
   
   resultadoPago: any = null;
   vistaActual: 'tarjetas' | 'lista' = 'tarjetas';
@@ -471,16 +462,6 @@ export class CompraPaquetesComponent implements OnInit, OnDestroy {
   get tipoTarjeta(): string | null {
     const numero = this.formularioPagoTarjeta.get('numeroTarjeta')?.value || '';
     return this.cyberSourceService.detectCardType(numero);
-  }
-
-  usarTarjetaPrueba(tarjeta: any): void {
-    this.formularioPagoTarjeta.patchValue({
-      numeroTarjeta: this.cyberSourceService.formatCardNumber(tarjeta.numero),
-      nombreTarjeta: 'USUARIO PRUEBA',
-      mesExpiracion: '12',
-      anioExpiracion: '2025',
-      cvv: tarjeta.cvv
-    });
   }
 
   onArchivoSeleccionado(event: any): void {

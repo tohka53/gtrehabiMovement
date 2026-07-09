@@ -47,6 +47,7 @@ export class CompraPaquetesService {
           descripcion,
           tipo,
           precio,
+          descuento,
           cantidad_sesiones,
           imagen_url,
           status
@@ -61,15 +62,12 @@ export class CompraPaquetesService {
         (data || []).map(async (paquete) => {
           const contenido = await this.obtenerContenidoPaquete(paquete.id, paquete.tipo);
           const usuario = await this.authService.getCurrentUser();
-          // ⚠️ CORREGIDO: Verificar que usuario.id existe
-          const descuento = usuario?.id ? await this.calcularMejorDescuento(usuario.id, paquete.id) : null;
+          const descuentoRpc = usuario?.id ? await this.calcularMejorDescuento(usuario.id, paquete.id) : null;
 
           return {
             ...paquete,
-            precio_con_descuento: descuento ? descuento.precio_final : paquete.precio,
-            ahorro: descuento ? (paquete.precio - descuento.precio_final) : 0,
-            contenido_detalle: contenido,
-            mejor_descuento: descuento
+            ...this.calcularPreciosPaquete(paquete, descuentoRpc),
+            contenido_detalle: contenido
           } as PaqueteParaCompra;
         })
       );
@@ -79,6 +77,30 @@ export class CompraPaquetesService {
       console.error('Error obteniendo paquetes para compra:', error);
       throw error;
     }
+  }
+
+  /**
+   * Regla única de precios (misma que aplica el backend en la edge function):
+   * el precio final es el MEJOR entre el % de descuento propio del paquete
+   * (paquetes.descuento) y el mejor descuento de la tabla descuentos_paquetes.
+   */
+  private calcularPreciosPaquete(
+    paquete: { precio: number; descuento?: number | null },
+    descuentoRpc: CalculoDescuento | null
+  ): { precio_con_descuento: number; ahorro: number; mejor_descuento?: CalculoDescuento } {
+    const precio = Number(paquete.precio) || 0;
+    const pctPropio = Number(paquete.descuento) || 0;
+    const precioPorPctPropio = Math.round(precio * (1 - pctPropio / 100) * 100) / 100;
+    const precioRpc = descuentoRpc != null ? Number(descuentoRpc.precio_final) : null;
+
+    const precioFinal = precioRpc != null ? Math.min(precioPorPctPropio, precioRpc) : precioPorPctPropio;
+    const rpcGana = precioRpc != null && precioRpc <= precioPorPctPropio;
+
+    return {
+      precio_con_descuento: precioFinal,
+      ahorro: Math.round((precio - precioFinal) * 100) / 100,
+      mejor_descuento: rpcGana ? descuentoRpc! : undefined
+    };
   }
 
   async obtenerPaqueteParaCompraPorId(paqueteId: number): Promise<PaqueteParaCompra | null> {
@@ -91,8 +113,8 @@ export class CompraPaquetesService {
           descripcion,
           tipo,
           precio,
+          descuento,
           cantidad_sesiones,
-         
           imagen_url,
           status
         `)
@@ -105,15 +127,12 @@ export class CompraPaquetesService {
 
       const contenido = await this.obtenerContenidoPaquete(data.id, data.tipo);
       const usuario = await this.authService.getCurrentUser();
-      // ⚠️ CORREGIDO: Verificar que usuario.id existe
-      const descuento = usuario?.id ? await this.calcularMejorDescuento(usuario.id, data.id) : null;
+      const descuentoRpc = usuario?.id ? await this.calcularMejorDescuento(usuario.id, data.id) : null;
 
       return {
         ...data,
-        precio_con_descuento: descuento ? descuento.precio_final : data.precio,
-        ahorro: descuento ? (data.precio - descuento.precio_final) : 0,
-        contenido_detalle: contenido,
-        mejor_descuento: descuento
+        ...this.calcularPreciosPaquete(data, descuentoRpc),
+        contenido_detalle: contenido
       } as PaqueteParaCompra;
     } catch (error) {
       console.error('Error obteniendo paquete por ID:', error);
@@ -691,8 +710,10 @@ export class CompraPaquetesService {
 
   calcularResumenCompra(paquete: PaqueteParaCompra): ResumenCompra {
     const precioOriginal = paquete.precio;
-    const descuento = paquete.mejor_descuento ? (precioOriginal - paquete.mejor_descuento.precio_final) : 0;
-    const precioFinal = precioOriginal - descuento;
+    // precio_con_descuento ya incluye el mejor entre el % propio del paquete
+    // y los descuentos de la tabla (ver calcularPreciosPaquete)
+    const precioFinal = paquete.precio_con_descuento ?? precioOriginal;
+    const descuento = Math.round((precioOriginal - precioFinal) * 100) / 100;
     const ahorroPorcentaje = precioOriginal > 0 ? Math.round((descuento / precioOriginal) * 100) : 0;
 
     return {

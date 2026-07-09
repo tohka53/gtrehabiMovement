@@ -141,8 +141,9 @@ export interface PaqueteParaCompra {
   descripcion?: string;
   tipo: string;
   precio: number;
+  descuento?: number; // % de descuento propio del paquete (columna paquetes.descuento)
   cantidad_sesiones: number;
-  
+
   imagen_url?: string;
   status: number;
   // Datos calculados

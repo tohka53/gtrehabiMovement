@@ -178,7 +178,7 @@ export const CYBERSOURCE_CONFIG = {
     environment: 'TEST' as const
   },
   PRODUCTION: {
-    merchantId: 'rehabiMovement', // CAMBIAR por tu Merchant ID de PRODUCCIÓN
+    merchantId: 'visanetgt_rehabimovement', // Merchant ID de PRODUCCIÓN (VisaNet GT)
     orgId: 'k8vif92e',
     apiEndpoint: 'https://api.cybersource.com',
     environment: 'PRODUCTION' as const

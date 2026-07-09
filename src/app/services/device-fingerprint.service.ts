@@ -7,14 +7,16 @@ import {
   DEVICE_FINGERPRINT_URLS 
 } from '../interfaces/cybersource-payment.interfaces';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceFingerprintService {
-  
+
   private renderer: Renderer2;
-  private currentEnvironment: 'TEST' | 'PRODUCTION' = 'TEST'; // Cambiar a PRODUCTION en producción
+  // Se deriva del flag central en environments (mismo criterio que CyberSourcePaymentService)
+  private currentEnvironment: 'TEST' | 'PRODUCTION' = environment.cybersourceProduction ? 'PRODUCTION' : 'TEST';
   private sessionCache = new Map<string, DeviceFingerprintSession>();
   
   constructor(

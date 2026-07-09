@@ -57,6 +57,29 @@ export class PaqueteFormComponent implements OnInit {
   terapiasDisponibles: SelectorRutinaTerapia[] = [];
   cargandoOpciones = false;
 
+  // Búsqueda en el selector (las listas pueden ser muy largas)
+  busquedaContenido = '';
+
+  get rutinasFiltradas(): SelectorRutinaTerapia[] {
+    return this.filtrarContenido(this.rutinasDisponibles);
+  }
+
+  get terapiasFiltradas(): SelectorRutinaTerapia[] {
+    return this.filtrarContenido(this.terapiasDisponibles);
+  }
+
+  private filtrarContenido(lista: SelectorRutinaTerapia[]): SelectorRutinaTerapia[] {
+    const termino = this.busquedaContenido.trim().toLowerCase();
+    if (!termino) {
+      // Sin búsqueda: seleccionadas primero para que siempre estén visibles
+      return [...lista].sort((a, b) => Number(b.seleccionado) - Number(a.seleccionado));
+    }
+    return lista.filter(item =>
+      item.nombre?.toLowerCase().includes(termino) ||
+      item.descripcion?.toLowerCase().includes(termino)
+    );
+  }
+
   // Selecciones actuales
   rutinasSeleccionadas: number[] = [];
   terapiasSeleccionadas: number[] = [];
