@@ -45,7 +45,7 @@ export class TerapiasComponent implements OnInit {
     descripcion_detallada: '',
     tipo: 'fisica',
     area_especializacion: '',
-    nivel: 'Principiante', // Ahora es string libre
+    estimulo: 'Principiante', // string libre
     duracion_estimada: 60,
     objetivo_principal: '',
     contraindicaciones: '',
@@ -146,7 +146,7 @@ export class TerapiasComponent implements OnInit {
       
       // FILTRO POR NIVEL COMO TEXTO LIBRE (coincidencia parcial)
       const matchesNivel = !this.nivelFilter || !this.nivelFilter.trim() ||
-        terapia.nivel?.toLowerCase().includes(this.nivelFilter.toLowerCase().trim());
+        terapia.estimulo?.toLowerCase().includes(this.nivelFilter.toLowerCase().trim());
       
       const matchesStatus = this.statusFilter === 'all' || 
         (this.statusFilter === 'active' && terapia.status === 1) ||
@@ -170,7 +170,7 @@ export class TerapiasComponent implements OnInit {
   // ===============================================
 
   selectNivelSugerencia(sugerencia: string): void {
-    this.terapiaForm.nivel = sugerencia;
+    this.terapiaForm.estimulo = sugerencia;
     this.showNivelSuggestions = false;
   }
 
@@ -187,7 +187,7 @@ export class TerapiasComponent implements OnInit {
 
   onNivelInputChange(): void {
     // Filtrar sugerencias basadas en el texto actual
-    const inputValue = this.terapiaForm.nivel?.toLowerCase() || '';
+    const inputValue = this.terapiaForm.estimulo?.toLowerCase() || '';
     if (inputValue) {
       const filteredSuggestions = this.nivelesSugeridos.filter(nivel =>
         nivel.toLowerCase().includes(inputValue)
@@ -202,14 +202,14 @@ export class TerapiasComponent implements OnInit {
 
   // VALIDACIÓN DEL NIVEL EN EL FORMULARIO
   private validateNivel(): boolean {
-    if (!this.terapiaForm.nivel || !this.terapiaForm.nivel.trim()) {
-      this.error = 'El nivel es requerido';
+    if (!this.terapiaForm.estimulo || !this.terapiaForm.estimulo.trim()) {
+      this.error = 'El estímulo es requerido';
       return false;
     }
     
     // Validar longitud máxima
-    if (this.terapiaForm.nivel.length > 50) {
-      this.error = 'El nivel no puede exceder 50 caracteres';
+    if (this.terapiaForm.estimulo.length > 50) {
+      this.error = 'El estímulo no puede exceder 50 caracteres';
       return false;
     }
     
@@ -220,8 +220,8 @@ export class TerapiasComponent implements OnInit {
   getNivelesExistentes(): string[] {
     const niveles = new Set<string>();
     this.terapias.forEach(terapia => {
-      if (terapia.nivel && terapia.nivel.trim()) {
-        niveles.add(terapia.nivel.trim());
+      if (terapia.estimulo && terapia.estimulo.trim()) {
+        niveles.add(terapia.estimulo.trim());
       }
     });
     return Array.from(niveles).sort();
@@ -337,7 +337,7 @@ export class TerapiasComponent implements OnInit {
       descripcion_detallada: '',
       tipo: 'fisica',
       area_especializacion: '',
-      nivel: 'Principiante', // Valor por defecto
+      estimulo: 'Principiante', // Valor por defecto
       duracion_estimada: 60,
       objetivo_principal: '',
       contraindicaciones: '',
@@ -480,7 +480,7 @@ export class TerapiasComponent implements OnInit {
       }
 
       if (this.seccionesActivas.size === 0) {
-        this.error = 'Debe activar al menos una sección con ejercicios';
+        this.error = 'Activá al menos una sección (Calentamiento, Fortalecimiento, ...) más abajo en el formulario y agregale un ejercicio.';
         return;
       }
 
@@ -495,12 +495,12 @@ export class TerapiasComponent implements OnInit {
       }
 
       if (!tieneEjercicios) {
-        this.error = 'Debe agregar al menos un ejercicio en alguna sección';
+        this.error = 'La sección activa no tiene ejercicios: usá "Agregar Ejercicio" y ponele nombre.';
         return;
       }
 
       // Limpiar y normalizar el nivel
-      this.terapiaForm.nivel = this.terapiaForm.nivel.trim();
+      this.terapiaForm.estimulo = this.terapiaForm.estimulo.trim();
 
       // Preparar datos para guardar
       const dataToSave = { ...this.terapiaForm };
@@ -524,9 +524,11 @@ export class TerapiasComponent implements OnInit {
 
       await this.loadTerapias();
       this.closeModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error guardando terapia:', error);
-      this.error = 'Error al guardar la terapia. Intente nuevamente.';
+      // Mostrar el error real de Supabase/PostgREST (columna inexistente, FK, RLS...)
+      this.error = error?.message || error?.details || error?.hint ||
+                   'Error al guardar la terapia. Intente nuevamente.';
     } finally {
       this.loading = false;
     }
@@ -637,7 +639,7 @@ getFormattedTerapia(terapia: Terapia): string {
   texto += `${terapia.descripcion || 'Terapia de rehabilitación integral'}\n\n`;
   
   // Información básica con iconos
-  const nivelText = `Nivel: ${(terapia.nivel || 'No especificado').toUpperCase()}`;
+  const nivelText = `Estímulo: ${(terapia.estimulo || 'No especificado').toUpperCase()}`;
   const duracionText = `Duración: ${this.formatDuracion(terapia.duracion_estimada)}`;
   const tipoText = `Tipo: ${this.getTipoLabel(terapia.tipo).toUpperCase()}`;
   

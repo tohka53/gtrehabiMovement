@@ -334,7 +334,7 @@ export class MisTerapiasComponent implements OnInit {
       nombre: seguimiento.terapia_nombre,
       descripcion: seguimiento.terapia_descripcion || 'Información detallada disponible con el terapeuta',
       tipo: seguimiento.terapia_tipo,
-      nivel: seguimiento.terapia_nivel,
+      estimulo: seguimiento.terapia_nivel,
       duracion_estimada: seguimiento.duracion_estimada,
       area_especializacion: this.obtenerAreaEspecializacion(seguimiento.terapia_tipo),
       ejercicios: null,
@@ -473,7 +473,7 @@ export class MisTerapiasComponent implements OnInit {
     if (terapia.descripcion_detallada) {
       texto += `\n📝 DESCRIPCIÓN:\n${terapia.descripcion_detallada}\n`;
     }
-    texto += `Tipo: ${terapia.tipo || seguimiento?.terapia_tipo || 'No especificado'} | Nivel: ${terapia.nivel || seguimiento?.terapia_nivel || 'No especificado'}\n`;
+    texto += `Tipo: ${terapia.tipo || seguimiento?.terapia_tipo || 'No especificado'} | Estímulo: ${terapia.estimulo || seguimiento?.terapia_nivel || 'No especificado'}\n`;
     
     if (terapia.area_especializacion) {
       texto += `Área: ${terapia.area_especializacion}\n`;
@@ -736,7 +736,7 @@ export class MisTerapiasComponent implements OnInit {
       nombre: seguimiento.terapia_nombre,
       descripcion: seguimiento.terapia_descripcion,
       tipo: seguimiento.terapia_tipo,
-      nivel: seguimiento.terapia_nivel,
+      estimulo: seguimiento.terapia_nivel,
       duracion_estimada: seguimiento.duracion_estimada
     };
     

@@ -339,7 +339,7 @@ export class CalendarioTerapiasComponent implements OnInit {
 
     let texto = `${terapia.nombre || seguimiento?.terapia_nombre || 'Terapia sin nombre'}\n`;
     texto += `${terapia.descripcion || seguimiento?.terapia_descripcion || 'Información detallada disponible con el terapeuta'}\n`;
-    texto += `Tipo: ${terapia.tipo || seguimiento?.terapia_tipo || 'No especificado'} | Nivel: ${terapia.nivel || seguimiento?.terapia_nivel || 'No especificado'}\n`;
+    texto += `Tipo: ${terapia.tipo || seguimiento?.terapia_tipo || 'No especificado'} | Estímulo: ${terapia.estimulo || seguimiento?.terapia_nivel || 'No especificado'}\n`;
     
     if (terapia.area_especializacion) {
       texto += `Área: ${terapia.area_especializacion}\n`;
@@ -595,7 +595,7 @@ export class CalendarioTerapiasComponent implements OnInit {
       nombre: seguimiento.terapia_nombre,
       descripcion: seguimiento.terapia_descripcion || 'Información detallada disponible con el terapeuta',
       tipo: seguimiento.terapia_tipo,
-      nivel: seguimiento.terapia_nivel,
+      estimulo: seguimiento.terapia_nivel,
       duracion_estimada: seguimiento.duracion_estimada,
       area_especializacion: this.obtenerAreaEspecializacion(seguimiento.terapia_tipo),
       // NO generar ejercicios falsos - esperar datos reales de BD

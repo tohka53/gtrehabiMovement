@@ -27,7 +27,7 @@ interface TerapiaDB {
   descripcion: any;
   tipo: any;
   area_especializacion: any;
-  nivel: any;
+  estimulo: any;
   duracion_estimada: any;
 }
 
@@ -210,7 +210,7 @@ export class PaqueteFormComponent implements OnInit {
       
       const { data: terapias, error } = await this.supabaseService.client
         .from('terapias')
-        .select('id, nombre, descripcion, tipo, area_especializacion, nivel, duracion_estimada')
+        .select('id, nombre, descripcion, tipo, area_especializacion, estimulo, duracion_estimada')
         .eq('status', 1)
         .order('nombre');
 
@@ -401,7 +401,7 @@ export class PaqueteFormComponent implements OnInit {
     const partes = [];
     if (terapia.tipo) partes.push(`Tipo: ${String(terapia.tipo)}`);
     if (terapia.area_especializacion) partes.push(String(terapia.area_especializacion));
-    if (terapia.nivel) partes.push(`Nivel: ${String(terapia.nivel)}`);
+    if (terapia.estimulo) partes.push(`Estímulo: ${String(terapia.estimulo)}`);
     if (terapia.duracion_estimada) partes.push(`${terapia.duracion_estimada} min`);
     return partes.join(' • ');
   }

@@ -329,11 +329,14 @@
               name="terapia"
               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
             >
-              <option value="0">Selecciona una terapia</option>
-              <option *ngFor="let terapia of opcionesTerapia(asignacionForm.id_terapia); trackBy: trackByTerapiaId" [value]="terapia.id">
-                {{ terapia.nombre }} - {{ terapia.tipo | titlecase }} ({{ terapia.nivel }})
+              <option [ngValue]="0">Selecciona una terapia</option>
+              <option *ngFor="let terapia of opcionesTerapia(asignacionForm.id_terapia); trackBy: trackByTerapiaId" [ngValue]="terapia.id">
+                {{ terapia.nombre }} - {{ terapia.tipo | titlecase }} ({{ terapia.estimulo }})
               </option>
             </select>
+            <p *ngIf="terapias.length === 0" class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+              No hay terapias activas registradas. Creá una primero en <strong>Terapias</strong>.
+            </p>
           </div>
 
           <!-- Configuración -->
@@ -363,8 +366,8 @@
                 name="terapeuta"
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
               >
-                <option [value]="undefined">Sin asignar</option>
-                <option *ngFor="let terapeuta of terapeutas" [value]="terapeuta.id">
+                <option [ngValue]="undefined">Sin asignar</option>
+                <option *ngFor="let terapeuta of terapeutas" [ngValue]="terapeuta.id">
                   {{ terapeuta.full_name }}
                 </option>
               </select>
@@ -500,6 +503,9 @@
                   </div>
                 </label>
               </div>
+              <p *ngIf="usuarios.length === 0" class="text-sm text-amber-700">
+                No hay usuarios activos para asignar.
+              </p>
             </div>
             
             <!-- Contador de usuarios seleccionados -->

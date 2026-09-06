@@ -12,7 +12,7 @@ export interface Terapia {
   descripcion_detallada?: string;
   tipo: 'fisica' | 'ocupacional' | 'respiratoria' | 'neurologica' | 'cardiaca';
   area_especializacion?: string;
-  nivel: string; // CAMBIO: Ahora permite cualquier string libre
+  estimulo: string; // Columna real en BD: terapias.estimulo (antes 'nivel')
   duracion_estimada?: number; // en minutos
   objetivo_principal?: string;
   contraindicaciones?: string;

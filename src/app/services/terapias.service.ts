@@ -57,16 +57,80 @@ export class TerapiasService {
     }
   }
 
+  /**
+   * Traduce el modelo del formulario a las columnas REALES de la tabla `terapias`.
+   * Evita que un campo de UI o un rename de columna tumbe el insert (PGRST204).
+   * Acepta `estimulo` o el viejo `nivel` como fuente.
+   */
+  private toRow(terapia: any): any {
+    return {
+      nombre: (terapia.nombre || '').trim(),
+      descripcion: terapia.descripcion || null,
+      observaciones_generales: terapia.observaciones_generales || null,
+      descripcion_detallada: terapia.descripcion_detallada || null,
+      tipo: terapia.tipo || 'fisica',
+      area_especializacion: terapia.area_especializacion || null,
+      estimulo: (terapia.estimulo ?? terapia.nivel ?? '').toString().trim() || null,
+      duracion_estimada: terapia.duracion_estimada ?? null,
+      objetivo_principal: terapia.objetivo_principal || null,
+      contraindicaciones: terapia.contraindicaciones || null,
+      criterios_progresion: terapia.criterios_progresion || null,
+      tags: (terapia.tags && terapia.tags.length) ? terapia.tags : null,
+      ejercicios: terapia.ejercicios ?? {},
+      status: terapia.status ?? 1
+    };
+  }
+
+  /**
+   * Si PostgREST responde PGRST204 ("Could not find the 'X' column..."),
+   * devuelve el nombre de la columna que sobra en el payload.
+   */
+  private columnaFaltante(error: any): string | null {
+    const msg = `${error?.message || ''} ${error?.details || ''}`;
+    const m = msg.match(/'([a-zA-Z0-9_]+)' column/) ||
+              msg.match(/column "?([a-zA-Z0-9_]+)"? of relation/i);
+    return m ? m[1] : null;
+  }
+
+  /**
+   * Inserta o actualiza tolerando que la tabla no tenga alguna columna opcional
+   * del formulario: la descarta y reintenta en vez de fallar en silencio.
+   */
+  private async guardarTerapia(row: any, id?: number): Promise<Terapia> {
+    const payload: any = { ...row };
+
+    for (let intento = 0; intento < 6; intento++) {
+      const { data, error } = id
+        ? await this.supabaseService.supabase
+            .from('terapias')
+            .update({ ...payload, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single()
+        : await this.supabaseService.supabase
+            .from('terapias')
+            .insert([payload])
+            .select()
+            .single();
+
+      if (!error) return data;
+
+      const faltante = this.columnaFaltante(error);
+      if (faltante && Object.prototype.hasOwnProperty.call(payload, faltante)) {
+        console.warn(`La tabla "terapias" no tiene la columna "${faltante}"; se omite y se reintenta.`);
+        delete payload[faltante];
+        continue;
+      }
+
+      throw error;
+    }
+
+    throw new Error('No se pudo guardar la terapia: demasiadas columnas inexistentes en la tabla.');
+  }
+
   async createTerapia(terapia: Terapia): Promise<Terapia> {
     try {
-      const { data, error } = await this.supabaseService.supabase
-        .from('terapias')
-        .insert([terapia])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await this.guardarTerapia(this.toRow(terapia));
     } catch (error) {
       console.error('Error al crear terapia:', error);
       throw error;
@@ -75,15 +139,7 @@ export class TerapiasService {
 
   async updateTerapia(id: number, terapia: Partial<Terapia>): Promise<Terapia> {
     try {
-      const { data, error } = await this.supabaseService.supabase
-        .from('terapias')
-        .update({ ...terapia, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await this.guardarTerapia(this.toRow(terapia), id);
     } catch (error) {
       console.error('Error al actualizar terapia:', error);
       throw error;

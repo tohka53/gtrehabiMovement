@@ -253,7 +253,7 @@ export class TerapiasAsignacionService {
       terapia_descripcion: item.terapias?.descripcion || '',
       terapia_tipo: item.terapias?.tipo || '',
       area_especializacion: item.terapias?.area_especializacion || '',
-      terapia_nivel: item.terapias?.nivel || '',
+      terapia_nivel: item.terapias?.estimulo || '',
       duracion_estimada: item.terapias?.duracion_estimada || 0,
       tipo_asignacion: item.terapia_asignaciones_masivas?.tipo_asignacion || '',
       sesiones_por_semana: item.terapia_asignaciones_masivas?.sesiones_por_semana || 0,
@@ -369,7 +369,7 @@ async obtenerTerapiasAsignadasUsuario(idUsuario: number): Promise<TerapiaAsignad
         *,
         terapia_asignaciones_masivas(*),
         profiles(username, full_name),
-        terapias(nombre, descripcion, tipo, area_especializacion, nivel, duracion_estimada)
+        terapias(nombre, descripcion, tipo, area_especializacion, estimulo, duracion_estimada)
       `)
       .eq('id_profile', idUsuario);
 
@@ -390,7 +390,7 @@ async obtenerTodosLosSeguimientos(): Promise<TerapiaAsignadaUsuario[]> {
         *,
         terapia_asignaciones_masivas(*),
         profiles(full_name, username),
-        terapias(nombre, descripcion, tipo, area_especializacion, nivel, duracion_estimada)
+        terapias(nombre, descripcion, tipo, area_especializacion, estimulo, duracion_estimada)
       `);
 
     if (error) throw error;

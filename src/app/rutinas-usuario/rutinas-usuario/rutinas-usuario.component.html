@@ -463,8 +463,8 @@
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                     required
                   >
-                    <option [value]="0">Seleccionar rutina...</option>
-                    <option *ngFor="let rutina of opcionesRutina(asignacion.id_rutina); trackBy: trackByRutinaId" [value]="rutina.id">
+                    <option [ngValue]="0">Seleccionar rutina...</option>
+                    <option *ngFor="let rutina of opcionesRutina(asignacion.id_rutina); trackBy: trackByRutinaId" [ngValue]="rutina.id">
                       {{ rutina.nombre }}
                     </option>
                   </select>
@@ -492,7 +492,7 @@
                     [(ngModel)]="asignacion.duracion_dias"
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                   >
-                    <option *ngFor="let duracion of duracionesDisponibles" [value]="duracion.dias">
+                    <option *ngFor="let duracion of duracionesDisponibles" [ngValue]="duracion.dias">
                       {{ duracion.label }} ({{ duracion.dias }} días)
                     </option>
                   </select>
