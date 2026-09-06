@@ -46,7 +46,7 @@ export interface TerapiaOpcion {
   descripcion?: string;
   tipo: string;
   area_especializacion?: string;
-  nivel: string;
+  estimulo: string;
   duracion_estimada?: number;
   status: number;
 }

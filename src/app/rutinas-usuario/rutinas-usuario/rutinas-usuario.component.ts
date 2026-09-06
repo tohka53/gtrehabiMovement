@@ -235,7 +235,7 @@ export class RutinasUsuarioComponent implements OnInit {
   // Rutina (con sus textos) ligada a una asignación, para mostrar observaciones en el detalle
   rutinaDeAsignacion(asignacion: any): Rutina | undefined {
     if (!asignacion) { return undefined; }
-    return this.rutinas.find(r => r.id === asignacion.id_rutina);
+    return this.rutinas.find(r => Number(r.id) === Number(asignacion.id_rutina));
   }
 
   // ============ Editar asignación / contenido de la rutina (solo quien asigna) ============
@@ -516,7 +516,9 @@ export class RutinasUsuarioComponent implements OnInit {
   }
 
   onRutinaChange(asignacion: AsignacionRutina): void {
-    const rutina = this.rutinas.find(r => r.id === asignacion.id_rutina);
+    asignacion.id_rutina = Number(asignacion.id_rutina);
+    asignacion.duracion_dias = Number(asignacion.duracion_dias);
+    const rutina = this.rutinas.find(r => Number(r.id) === Number(asignacion.id_rutina));
     asignacion.rutina_nombre = rutina?.nombre || '';
   }
 
@@ -659,7 +661,7 @@ export class RutinasUsuarioComponent implements OnInit {
 
     } catch (error) {
       console.error('Error asignando rutinas:', error);
-      this.error = error instanceof Error ? error.message : 'Error al asignar las rutinas';
+      this.error = (error as any)?.message || (error as any)?.details || 'Error al asignar las rutinas';
     } finally {
       this.loading = false;
     }
@@ -894,8 +896,8 @@ export class RutinasUsuarioComponent implements OnInit {
   // MÉTODOS DE UTILIDAD
   // ==============================================
 
-  getRutinaNombre(rutinaId: number): string {
-    const rutina = this.rutinas.find(r => r.id === rutinaId);
+  getRutinaNombre(rutinaId: number | string): string {
+    const rutina = this.rutinas.find(r => Number(r.id) === Number(rutinaId));
     return rutina?.nombre || 'Rutina no encontrada';
   }
 

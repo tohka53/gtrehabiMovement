@@ -101,7 +101,7 @@ export class TerapiasUsuarioComponent implements OnInit {
   estadoFilter = 'all';
   terapiaFilter = 'all';
   tipoFilter = 'all';
-Math: any;
+Math = Math; // expuesto al template (antes era `Math: any;` => undefined en runtime)
 
   constructor(
     private supabaseService: SupabaseService,
@@ -141,15 +141,16 @@ Math: any;
   // ================== Buscador de terapias (modal asignar) ==================
   terapiaSearch = '';
 
-  opcionesTerapia(seleccionId?: number): Terapia[] {
+  opcionesTerapia(seleccionId?: number | string): Terapia[] {
     const term = this.terapiaSearch.trim().toLowerCase();
+    const selId = Number(seleccionId);
     let list = this.terapias;
     if (term) {
       list = this.terapias.filter(t => (t.nombre || '').toLowerCase().includes(term));
     }
     // Mantener visible la terapia ya seleccionada aunque no coincida con la búsqueda
-    if (seleccionId && !list.some(t => t.id === seleccionId)) {
-      const sel = this.terapias.find(t => t.id === seleccionId);
+    if (selId && !list.some(t => Number(t.id) === selId)) {
+      const sel = this.terapias.find(t => Number(t.id) === selId);
       if (sel) {
         list = [sel, ...list];
       }
@@ -160,7 +161,7 @@ Math: any;
   // Terapia (con sus textos) ligada a una asignación, para mostrar observaciones en el detalle
   terapiaDeAsignacion(asignacion: any): Terapia | undefined {
     if (!asignacion) { return undefined; }
-    return this.terapias.find(t => t.id === asignacion.id_terapia);
+    return this.terapias.find(t => Number(t.id) === Number(asignacion.id_terapia));
   }
 
   // ============ Editar asignación / contenido de la terapia (solo quien asigna) ============
@@ -255,7 +256,9 @@ Math: any;
   async loadUsuarios(): Promise<void> {
     try {
       const data = await this.supabaseService.getData('profiles');
-      this.usuarios = data?.filter(u => u.status === 1 && (u.id_perfil === 1 || u.id_perfil === 2)) || [];
+      // Todos los usuarios activos: antes se filtraba por id_perfil 1|2 y los pacientes
+      // con otro perfil no aparecían, dejando la lista vacía.
+      this.usuarios = data?.filter(u => u.status === 1) || [];
     } catch (error) {
       console.error('Error cargando usuarios:', error);
     }
@@ -591,9 +594,10 @@ Math: any;
       // Mostrar mensaje de éxito
       alert(`Terapia asignada exitosamente a ${this.asignacionForm.usuarios_seleccionados.length} usuarios`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error asignando terapia:', error);
-      this.error = error instanceof Error ? error.message : 'Error al asignar la terapia';
+      // Los errores de Supabase no son `instanceof Error`: hay que leer .message/.details
+      this.error = error?.message || error?.details || error?.hint || 'Error al asignar la terapia';
     } finally {
       this.loading = false;
     }

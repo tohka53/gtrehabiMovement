@@ -651,7 +651,7 @@ export class CalendarioPaquetesComponent implements OnInit, OnDestroy {
         nombre: sesion.contenido_nombre,
         descripcion: 'Terapia de rehabilitación personalizada',
         tipo: 'fisica',
-        nivel: 'intermedio',
+        estimulo: 'intermedio',
         duracion_estimada: 45,
         area_especializacion: 'Rehabilitación General',
         ejercicios: null
@@ -958,7 +958,7 @@ export class CalendarioPaquetesComponent implements OnInit, OnDestroy {
   private formatTerapiaContent(terapia: any): string {
     let content = `${terapia.nombre}\n`;
     content += `${terapia.descripcion || ''}\n`;
-    content += `Nivel: ${terapia.nivel} | Duración: ${terapia.duracion_estimada || 0}h 0m\n\n`;
+    content += `Estímulo: ${terapia.estimulo ?? terapia.nivel ?? 'No especificado'} | Duración: ${terapia.duracion_estimada || 0}h 0m\n\n`;
     
     if (terapia.objetivo_principal) {
       content += `Objetivo: ${terapia.objetivo_principal}\n`;
